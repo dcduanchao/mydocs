@@ -1,0 +1,77 @@
+site_name: 我的文档
+site_description: Linux / Python / 项目文档
+site_author: Your Name
+
+# 网站地址（可选）
+site_url: https://example.com
+
+# 文档目录
+docs_dir: docs
+
+# 构建输出目录
+site_dir: site
+
+theme:
+  name: material
+  language: zh
+
+  # logo
+  # logo: assets/logo.png
+
+  features:
+    - navigation.tabs        # 顶部导航
+    - navigation.sections    # 分组导航
+    - navigation.expand      # 默认展开目录
+    - navigation.top         # 返回顶部
+    - search.highlight       # 搜索高亮
+    - search.share
+
+  palette:
+    # 日间/夜间模式
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: 浅色模式
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-night
+        name: 深色模式
+
+# Markdown扩展
+markdown_extensions:
+  - toc:
+      permalink: true
+
+  - admonition
+
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+  - pymdownx.tabbed
+
+  - pymdownx.details
+
+# 插件
+plugins:
+  - search
+
+# 导航目录
+nav:
+  - 首页: index.md
+
+  - Linux:
+      - Ubuntu安装: linux/ubuntu.md
+      - 常用命令: linux/command.md
+
+  - Python:
+      - Conda环境: python/conda.md
+      - MkDocs安装: python/mkdocs.md
+
+  - 项目:
+      - 项目说明: project/about.md
+
+# 版权
+copyright: Copyright © 2026
