@@ -9,8 +9,6 @@
 ## Coding Style & Naming Conventions
 Markdown 内容应简洁、聚焦主题，默认使用清晰中文，只有在必须时保留英文术语。优先使用 ATX 标题（`#`、`##`）和围栏代码块展示命令。保持现有命名风格：目录名小写，Markdown 文件名使用 snake_case，例如 `java_base.md`。修改 `mkdocs.yml` 时保持当前两空格缩进；新增或重命名页面时，记得同步更新 `nav`。
 
-## Testing Guidelines
-本仓库目前没有自动化测试。必须执行的验证步骤是 `mkdocs build`；构建无报错应视为最低质量门槛。修改导航、链接或文件名后，还应在本地预览中确认目标页面能正常渲染，菜单项可以正确跳转。
 
 ## Commit & Pull Request Guidelines
 最近的提交历史同时包含简短中文和简单英文，例如 `java`、`忽略`、`Make deploy script cron-safe`。建议使用简短但明确的提交信息，直接说明实际改动。提交 PR 时应包含：变更摘要、涉及的页面或配置文件、执行过的验证命令（如 `mkdocs build`）；只有在布局或主题显示发生变化时才附截图。
