@@ -281,7 +281,7 @@ System.out.println(s3.equals(s4)); // true
 
 基本类型 `==` 比值，引用类型 `==` 比地址；`equals()` 一般比内容，但具体要看类有没有重写。
 
-# static 关键字作用，this 可以使用吗
+## static 关键字作用，this 可以使用吗
 
 ### 面试精简回答
 
@@ -325,7 +325,7 @@ class User {
 
 `static` 属于类，`this` 属于对象；静态上下文没有当前对象，所以不能直接使用 `this`。
 
-# final / finally / finalize 区别
+## final / finally / finalize 区别
 
 ### 一句话秒答
 
@@ -372,7 +372,7 @@ public class Test {
 - `finally` 里写 `return` 会发生什么？  
   `finally` 的 `return` 会覆盖 `try` 或 `catch` 里的返回结果，所以实际开发中不建议这样写。
 
-# String / StringBuilder / StringBuffer 区别
+## String / StringBuilder / StringBuffer 区别
 
 ### 一句话秒答
 
@@ -407,7 +407,7 @@ System.out.println(builder.toString()); // ab
 - `StringBuilder` 默认容量不够时会发生什么？  
   会自动扩容，底层创建更大的字符数组并复制旧内容，所以大量拼接时可以提前指定容量。
 
-# List / Set / Map 区别
+## List / Set / Map 区别
 
 ### 一句话秒答
 
@@ -446,7 +446,7 @@ map.put("age", 20); // 覆盖旧值
 - `HashMap`、`LinkedHashMap`、`TreeMap` 有什么区别？  
   `HashMap` 无序，`LinkedHashMap` 保持插入顺序，`TreeMap` 按 key 排序。
 
-#  map 存储结构和扩容机制
+##  map 存储结构和扩容机制
 
 ### 一句话秒答
 
@@ -480,7 +480,7 @@ System.out.println(value); // 1
 - `HashMap` 扩容为什么性能开销大？  
   因为要创建新数组，并把旧数组里的节点迁移或重新分布到新位置。
 
-# this() 和 super() 在构造方法中的区别
+## this() 和 super() 在构造方法中的区别
 
 ### 一句话秒答
 
@@ -524,7 +524,7 @@ class Child extends Parent {
 - 子类构造方法默认一定会调用父类构造方法吗？  
   会，如果没有显式写 `super()` 或 `this()`，编译器默认插入无参 `super()`。
 
-# Java 基础高频补充
+## Java 基础高频补充
 
 ## String 为什么不可变
 
