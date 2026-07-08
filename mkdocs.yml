@@ -62,6 +62,9 @@ plugins:
 nav:
   - 首页: index.md
 
+  - Java:
+      - Java基础： java/java_base.md
+
   - Linux:
       - Ubuntu安装: linux/ubuntu.md
       - 常用命令: linux/command.md
