@@ -31,4 +31,4 @@ mkdir -p "$DEPLOY_DIR"
 rsync -av --delete "$PROJECT_DIR/site/" "$DEPLOY_DIR/"
 
 echo "[4/4] Done"
-echo "Preview: http://127.0.0.1/mydocs/"
+echo "Preview: http://mydocs.du-ai.top/"
