@@ -2173,3 +2173,61 @@ Integer age = getValue(ages, "Tom");
   没有，本质都是类型参数，只是命名语义不同。
 - 编译器怎么知道 `T`、`R` 是什么类型？  
   通常根据传入参数、Lambda 和返回值上下文自动推断。
+
+## 什么是 SPI
+
+### 一句话秒答
+
+SPI 全称 `Service Provider Interface`，是一种服务发现机制。框架定义接口，第三方提供实现，并通过 `META-INF/services/接口全限定名` 配置实现类，JDK 通过 `ServiceLoader` 自动加载。
+
+### 3 句展开
+
+API 是调用方使用别人提供的能力，SPI 是框架预留扩展点让别人来实现。Java SPI 常用于解耦接口和实现，比如 JDBC 驱动加载、日志实现发现。它的核心流程是：定义接口、提供实现、写配置文件、用 `ServiceLoader` 加载。
+
+### 经典案例（代码）
+
+```java
+public interface PayService {
+    void pay();
+}
+
+public class AliPayService implements PayService {
+    public void pay() {
+        System.out.println("ali pay");
+    }
+}
+
+ServiceLoader<PayService> loader = ServiceLoader.load(PayService.class);
+for (PayService service : loader) {
+    service.pay();
+}
+```
+
+配置文件：
+
+```text
+META-INF/services/com.example.PayService
+```
+
+文件内容：
+
+```text
+com.example.AliPayService
+```
+
+### 高频坑
+
+- 配置文件名必须是接口全限定名。
+- 文件内容必须是实现类全限定名。
+- 实现类通常需要无参构造方法。
+- Java SPI 默认会遍历加载实现，不适合复杂的条件筛选和排序。
+- SPI 常和双亲委派的破坏场景一起问，比如 JDBC 驱动加载。
+
+### 面试追问
+
+- SPI 和 API 区别？  
+  API 是使用别人提供的接口，SPI 是实现别人定义的扩展点。
+- SPI 常见应用场景？  
+  JDBC 驱动、日志框架、Dubbo 扩展点。
+- SPI 有什么缺点？  
+  JDK 原生 SPI 功能较简单，缺少按条件加载、排序、依赖注入等能力。
