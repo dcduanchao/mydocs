@@ -63,7 +63,8 @@ nav:
   - 首页: index.md
 
   - Java:
-      - Java基础： java/java_base.md
+      - java基础: java/java_base.md
+
 
   - Linux:
       - Ubuntu安装: linux/ubuntu.md
