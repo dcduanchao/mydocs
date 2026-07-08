@@ -1,2 +1,5 @@
 site/
 deploy_to_nginx.cron.log
+
+.idea
+.idea/*
