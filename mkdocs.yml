@@ -76,6 +76,7 @@ nav:
 
   - 项目:
       - 项目说明: project/about.md
+      - AI面试提示词: project/ai_interview_prompt.md
 
 # 版权
 copyright: Copyright © 2026

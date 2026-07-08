@@ -142,5 +142,94 @@ int b = a;       // 拆箱
 Integer a = null;
 int b = a; // NullPointerException
 ```
-## == vs equals
+## == vs equals 区别
 
+### 面试精简回答
+
+`==` 比较的是值还是地址，要分类型来看。基本类型用 `==` 比较的是值，引用类型用 `==` 比较的是对象地址。
+
+`equals()` 主要用于引用类型比较“内容是否相等”，但前提是这个类重写了 `equals()`。
+
+所以面试里可以直接答：基本类型 `==` 比值，引用类型 `==` 比地址，内容比较通常看 `equals()`。
+
+### 核心区别
+
+| 对比点 | `==` | `equals()` |
+| --- | --- | --- |
+| 基本类型 | 比较值 | 不适用 |
+| 引用类型 | 比较对象地址 | 默认比较地址，重写后通常比较内容 |
+| 是否可重写 | 不可 | 可以 |
+| 常见用途 | 判空、同一对象判断、基本类型比较 | 字符串、包装类、自定义对象内容比较 |
+
+### 经典案例
+
+```java
+int a = 10;
+int b = 10;
+System.out.println(a == b); // true
+
+String s1 = "abc";
+String s2 = "abc";
+System.out.println(s1 == s2); // true，常量池
+System.out.println(s1.equals(s2)); // true
+
+String s3 = new String("abc");
+String s4 = new String("abc");
+System.out.println(s3 == s4); // false
+System.out.println(s3.equals(s4)); // true
+```
+
+### 高频坑
+
+- `Object` 默认的 `equals()` 本质也是比较地址，所以不重写时和 `==` 差别不大。
+- `Integer`、`Long` 等包装类有缓存机制，小值范围内用 `==` 可能是 `true`，大值就不一定。
+- 自定义类如果只重写 `equals()` 不重写 `hashCode()`，放进 `HashSet`、`HashMap` 会出问题。
+- 调用 `str.equals("abc")` 时，如果 `str` 为 `null` 会抛空指针，更稳妥的是 `"abc".equals(str)`。
+
+### 一句话秒答版
+
+基本类型 `==` 比值，引用类型 `==` 比地址；`equals()` 一般比内容，但具体要看类有没有重写。
+
+# static 关键字作用，this 可以使用吗
+
+### 面试精简回答
+
+`static` 表示成员属于类本身，而不是属于某个具体对象。静态变量、静态方法、静态代码块都随着类加载而存在，可以通过类名直接访问。`static` 方法里不能直接使用 `this`，因为 `this` 代表当前对象，而静态方法调用时可以没有对象。
+
+### 核心区别
+
+| 对比点 | static 成员 | 普通成员 |
+| --- | --- | --- |
+| 归属 | 类 | 对象 |
+| 访问方式 | 类名直接访问 | 需要对象访问 |
+| 生命周期 | 类加载时存在 | 对象创建后存在 |
+| 是否能直接用 this | 不能 | 可以 |
+
+### 经典案例
+
+```java
+class User {
+    static int count = 0;
+    String name;
+
+    static void printCount() {
+        System.out.println(count);
+        // System.out.println(this.name); // 编译错误
+    }
+
+    void printName() {
+        System.out.println(this.name);
+    }
+}
+```
+
+### 高频坑
+
+- 静态方法不能直接访问普通成员变量，因为普通成员变量依赖对象存在。
+- `static` 变量是类共享的一份数据，不是每个对象各自一份。
+- 静态方法可以被子类定义同名方法，但这不是重写，而是隐藏，不体现运行时多态。
+- `this` 只能用于实例方法或构造方法，不能用于静态方法或静态代码块。
+
+### 一句话秒答版
+
+`static` 属于类，`this` 属于对象；静态上下文没有当前对象，所以不能直接使用 `this`。
