@@ -480,6 +480,91 @@ System.out.println(value); // 1
 - `HashMap` 扩容为什么性能开销大？  
   因为要创建新数组，并把旧数组里的节点迁移或重新分布到新位置。
 
+## jdk7和jdk8 map 不同之处
+
+### 一句话秒答
+
+面试里说 JDK7 和 JDK8 的 Map 不同，通常指 `HashMap`。JDK7 的 `HashMap` 底层主要是数组 + 链表；JDK8 在数组 + 链表基础上引入红黑树，链表过长时会树化，降低 hash 冲突严重时的查询成本。
+
+### 3 句展开
+
+JDK7 里同一个桶冲突多了会一直挂链表，极端情况下查询退化到 O(n)。JDK8 中当链表长度达到 8 且数组容量至少 64 时，链表会转成红黑树，查询效率可优化到 O(log n)。另外 JDK7 扩容迁移常说头插法，JDK8 改为尾插法并优化迁移逻辑，减少并发扩容下链表成环这类问题。
+
+### 经典案例（代码）
+
+```java
+Map<String, Integer> map = new HashMap<>();
+map.put("a", 1);
+map.put("b", 2);
+
+// JDK8 中如果大量 key 落到同一个桶：
+// 链表长度 >= 8 且数组容量 >= 64 时，链表可能转成红黑树。
+Integer value = map.get("a");
+```
+
+### 高频坑
+
+- 不要笼统说 “Map 变了”，面试重点通常是 `HashMap` 的底层结构变化。
+- JDK8 不是一冲突就树化，还要满足链表长度和数组容量条件。
+- `HashMap` 即使 JDK8 做了优化，也仍然不是线程安全的。
+
+### 面试追问
+
+- JDK8 为什么引入红黑树？  
+  为了避免大量 hash 冲突时链表过长，查询从 O(n) 优化到 O(log n)。
+- 为什么链表长度达到 8 还不一定树化？  
+  因为数组容量小于 64 时会优先扩容，容量足够大才树化。
+- 为什么不用红黑树直接替代链表？  
+  因为链表节点少时更简单、更省维护成本；大多数情况下 hash 分布均匀，链表不会很长，只有冲突严重时才需要红黑树优化。
+
+| 对比点 | Java 7 | Java 8 |
+| --- | --- | --- |
+| 数据结构 | 数组 + 链表 | 数组 + 链表 + 红黑树 |
+| 冲突解决 | 链表 | 链表 / 红黑树 |
+| 最坏查询复杂度 | O(n) | O(log n) |
+| 链表过长 | 性能下降 | 满足条件后自动树化 |
+| 节点类型 | Entry | Node / TreeNode |
+| 插入方式 | 头插法 | 尾插法 |
+
+一句话总结：Java 7 `HashMap` 通过数组定位桶，再通过链表解决 hash 冲突，查询最坏 O(n)。Java 8 在链表长度达到 8 且数组容量达到 64 时，将链表转换为红黑树，使冲突严重情况下查询效率从 O(n) 优化到 O(log n)。
+
+
+## 线程安全map是什么
+
+### 一句话秒答
+
+Java 里常见的线程安全 Map 有 `Hashtable`、`Collections.synchronizedMap()` 和 `ConcurrentHashMap`。面试和实际开发里通常优先答 `ConcurrentHashMap`，因为它既保证线程安全，又比整表加锁的方案并发性能更好。
+
+### 3 句展开
+
+`Hashtable` 是早期线程安全 Map，很多方法直接加 `synchronized`，锁粒度粗，性能较差。`Collections.synchronizedMap()` 是给普通 Map 包一层同步包装，本质也是粗粒度锁。`ConcurrentHashMap` 是专门为并发设计的 Map，适合多线程读写场景，也是现在最常用的线程安全 Map。
+
+### 经典案例（代码）
+
+```java
+Map<String, Integer> map = new ConcurrentHashMap<>();
+
+map.put("Tom", 18);
+map.put("Jerry", 20);
+
+Integer age = map.get("Tom");
+System.out.println(age); // 18
+```
+
+### 高频坑
+
+- `HashMap` 不是线程安全的，并发写不要直接用。
+- `Hashtable` 虽然线程安全，但锁粒度粗，现代开发不常作为首选。
+- `ConcurrentHashMap` 不允许 `null` key 和 `null` value。
+- `Collections.synchronizedMap()` 单个方法同步，但复合操作仍要注意加锁。
+
+### 面试追问
+
+- 为什么并发场景优先用 `ConcurrentHashMap`？  
+  因为它内部做了更细粒度的并发控制，能兼顾线程安全和性能。
+- `ConcurrentHashMap` 为什么不允许 `null`？  
+  为了避免并发场景下无法区分 key 不存在还是 value 本身就是 `null`。
+
 ## this() 和 super() 在构造方法中的区别
 
 ### 一句话秒答

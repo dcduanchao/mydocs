@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="560" viewBox="0 0 1040 560" role="img" aria-labelledby="title desc">
+  <title id="title">JDK 7 永久代与 JDK 8 元空间对比</title>
+  <desc id="desc">对比 HotSpot JVM 中 JDK 7 及以前使用永久代实现方法区，JDK 8 以后移除永久代并使用元空间实现方法区。</desc>
+  <defs>
+    <style>
+      .title { font: 700 30px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #172033; }
+      .subtitle { font: 16px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #5a667a; }
+      .section { font: 700 22px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #172033; }
+      .label { font: 700 19px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #172033; }
+      .note { font: 15px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #5a667a; }
+      .small { font: 14px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #667085; }
+    </style>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1f2937" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#768195"/>
+    </marker>
+  </defs>
+
+  <rect width="1040" height="560" rx="18" fill="#f7f8fb"/>
+  <text x="520" y="52" text-anchor="middle" class="title">方法区实现变化：永久代 → 元空间</text>
+  <text x="520" y="82" text-anchor="middle" class="subtitle">方法区是 JVM 规范概念；永久代和元空间是 HotSpot 的具体实现</text>
+
+  <rect x="60" y="125" width="420" height="330" rx="18" fill="#eef6ff" stroke="#7cb7ef" stroke-width="2" filter="url(#shadow)"/>
+  <text x="270" y="164" text-anchor="middle" class="section">JDK 7 及以前</text>
+  <text x="270" y="193" text-anchor="middle" class="small">方法区主要由永久代 PermGen 实现</text>
+
+  <rect x="100" y="230" width="340" height="72" rx="12" fill="#ffffff" stroke="#9ac7f2"/>
+  <text x="270" y="262" text-anchor="middle" class="label">Java 堆</text>
+  <text x="270" y="285" text-anchor="middle" class="note">对象实例</text>
+
+  <rect x="100" y="330" width="340" height="86" rx="12" fill="#ffffff" stroke="#9ac7f2"/>
+  <text x="270" y="363" text-anchor="middle" class="label">永久代 PermGen</text>
+  <text x="270" y="386" text-anchor="middle" class="note">类元信息、常量等</text>
+  <text x="270" y="407" text-anchor="middle" class="small">大小固定，容易 PermGen OOM</text>
+
+  <rect x="560" y="125" width="420" height="330" rx="18" fill="#fff4e8" stroke="#f2b46d" stroke-width="2" filter="url(#shadow)"/>
+  <text x="770" y="164" text-anchor="middle" class="section">JDK 8 以后</text>
+  <text x="770" y="193" text-anchor="middle" class="small">永久代移除，方法区由元空间 Metaspace 实现</text>
+
+  <rect x="600" y="230" width="340" height="72" rx="12" fill="#ffffff" stroke="#f1bf82"/>
+  <text x="770" y="262" text-anchor="middle" class="label">Java 堆</text>
+  <text x="770" y="285" text-anchor="middle" class="note">对象实例、字符串常量池等</text>
+
+  <rect x="600" y="330" width="340" height="86" rx="12" fill="#ffffff" stroke="#f1bf82"/>
+  <text x="770" y="363" text-anchor="middle" class="label">元空间 Metaspace</text>
+  <text x="770" y="386" text-anchor="middle" class="note">类元信息，使用本地内存</text>
+  <text x="770" y="407" text-anchor="middle" class="small">仍可能 Metaspace OOM</text>
+
+  <line x1="485" y1="290" x2="552" y2="290" stroke="#768195" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="520" y="270" text-anchor="middle" class="small">HotSpot 实现变化</text>
+
+  <rect x="145" y="485" width="750" height="42" rx="12" fill="#ffffff" stroke="#d7dce5"/>
+  <text x="520" y="512" text-anchor="middle" class="subtitle">记忆：方法区没消失，永久代没了；JDK 8 后主要看元空间。</text>
+</svg>
