@@ -69,8 +69,13 @@ nav:
 
 
   - Linux:
-      - Ubuntu安装: linux/ubuntu.md
-      - 常用命令: linux/command.md
+      - 部署vp: linux/vp_build.md
+      - vp1-首选: linux/vp1_v2rayA.md
+      - vp2: linux/vp2_clash.md
+      - ed25519|git_config: linux/ed25519.md
+      - ssh_key: linux/ssh_key.md
+      - linux防暴破解: linux/fail2ban.md
+      - 内网穿透: linux/内网穿透.md
 
   - Python:
       - Conda环境: python/conda.md
