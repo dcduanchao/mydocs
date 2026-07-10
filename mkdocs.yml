@@ -79,6 +79,7 @@ nav:
       - TG 代理: linux/TG代理.md
       - 虚拟内存: linux/linux虚拟内存.md
       - 文件互传: linux/文件互传.md
+      - linux下载: linux/linux下载.md
 
   - Python:
       - Conda环境: python/conda.md
