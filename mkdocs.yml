@@ -81,9 +81,15 @@ nav:
       - Conda环境: python/conda.md
       - MkDocs安装: python/mkdocs.md
 
+
+  - DOCKER:
+      - 暗转: docker/docker安装.md
+      - nginx: docker/nginx.md
+
   - 项目:
       - 项目说明: project/about.md
-      - AI面试提示词: project/ai_interview_prompt.md
+      - AI面试问答提示词: project/ai_interview_prompt.md
+      - cloudflare临时邮箱: project/cloudflare-temp-email-2026.md
 
 # 版权
 copyright: Copyright © 2026
