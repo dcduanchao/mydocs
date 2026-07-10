@@ -76,6 +76,9 @@ nav:
       - ssh_key: linux/ssh_key.md
       - linux防暴破解: linux/fail2ban.md
       - 内网穿透: linux/内网穿透.md
+      - TG 代理: linux/TG代理.md
+      - 虚拟内存: linux/linux虚拟内存.md
+      - 文件互传: linux/文件互传.md
 
   - Python:
       - Conda环境: python/conda.md
@@ -85,6 +88,7 @@ nav:
   - DOCKER:
       - 暗转: docker/docker安装.md
       - nginx: docker/nginx.md
+      - 常用软件: docker/docker-部署镜像.md
 
   - 项目:
       - 项目说明: project/about.md
