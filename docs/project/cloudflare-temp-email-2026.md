@@ -199,6 +199,8 @@ Published: 2026-07-04T14:16:12+00:00
 
 直达：[cloudflare_temp_email/db/schema.sql at main · dreamhunter2333/cloudflare_temp_email · GitHub](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/db/schema.sql)
 
+[本地](other/cf_sql.md)
+
 [![Image 36: image](https://cdn3.ldstatic.com/optimized/4X/9/5/0/950c62f5411bd8294d36e2da8e916b64b6f91df3_2_690x401.png)](https://cdn3.ldstatic.com/original/4X/9/5/0/950c62f5411bd8294d36e2da8e916b64b6f91df3.png "image")
 
 > 从Github复制过来后，粘贴到输入框内，点击【执行】
@@ -488,6 +490,7 @@ nodejs_compat
 **记得给作者点star！**
 
 项目 Releases 直达：[Releases · dreamhunter2333/cloudflare_temp_email · GitHub](https://github.com/dreamhunter2333/cloudflare_temp_email/releases)
+[worker.js](other/worker.js)
 
 [![Image 58: image](https://cdn3.ldstatic.com/optimized/4X/5/1/9/519d38d9e2b9d5b81b0d8ff680841fe3ed871ae0_2_450x500.png)](https://cdn3.ldstatic.com/original/4X/5/1/9/519d38d9e2b9d5b81b0d8ff680841fe3ed871ae0.png "image")
 

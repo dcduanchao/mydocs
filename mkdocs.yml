@@ -65,7 +65,9 @@ nav:
   - Java:
       - java基础: java/java_base.md
       - 数据结构与算法: java/data_structure_algorithm.md
+      - 数据结构与算法2: java/数据结构2.md
       - JVM: java/jvm.md
+      - SSE: java/sse_spring_webflux_guide.md
 
 
   - Linux:
@@ -95,6 +97,8 @@ nav:
       - 项目说明: project/about.md
       - AI面试问答提示词: project/ai_interview_prompt.md
       - cloudflare临时邮箱: project/cloudflare-temp-email-2026.md
+      - comfyui: project/comfyui.md
+      - 音乐伴奏分离: project/音乐伴奏分离.md
 
 # 版权
 copyright: Copyright © 2026
