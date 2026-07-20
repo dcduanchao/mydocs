@@ -64,6 +64,7 @@ nav:
 
   - Java:
       - java基础: java/java_base.md
+      - 函数式接口: java/java_util_function.md
       - 数据结构与算法: java/data_structure_algorithm.md
       - 数据结构与算法2: java/数据结构2.md
       - JVM: java/jvm.md
