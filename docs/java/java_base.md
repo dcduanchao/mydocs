@@ -2133,6 +2133,217 @@ Integer num = Utils.first(List.of(1, 2, 3));
 - 调用泛型方法时必须手动写类型吗？  
   通常不需要，编译器会根据参数和返回值上下文推断。
 
+## 泛型方法与继承边界
+
+### 一句话秒答
+
+泛型方法的核心是“方法自己声明类型参数”，继承边界的核心是“限制这个类型参数必须属于某个父类或接口体系”。`<T extends Animal>` 表示 `T` 必须是 `Animal` 或它的子类；`? extends Animal` 适合读取；`? super Dog` 适合写入。
+
+### 3 句展开
+
+`<T>` 是为了让方法的参数、返回值或多个参数之间建立同一种类型关系。`extends` 给 `T` 加上上限，方法内部就可以把它当成父类型使用。通配符 `?` 更偏“放宽接收范围”，但它不适合表达多个位置必须是同一个具体类型。
+
+### 泛型方法的基本位置
+
+泛型方法的类型参数写在返回值前面：
+
+```java
+public <T> T method(T value)
+```
+
+拆开看：
+
+```text
+public      修饰符
+<T>         声明这是泛型方法
+T           返回值类型
+method      方法名
+T value     参数类型
+```
+
+如果只写：
+
+```java
+public T method(T value)
+```
+
+通常是不对的，除非这个 `T` 已经在类上声明过。
+
+### `<T extends Parent>` 怎么理解
+
+```java
+public <T extends Animal> T handle(T animal)
+```
+
+意思是：
+
+```text
+T 必须是 Animal 或 Animal 的子类
+传进来 Dog，返回还是 Dog
+传进来 Cat，返回还是 Cat
+```
+
+它解决两个问题：
+
+- 限制调用方不能传无关类型。
+- 方法内部可以使用 `Animal` 定义的能力。
+
+泛型里的 `extends` 既可以表示继承类，也可以表示实现接口：
+
+```java
+<T extends Runnable>
+<T extends Serializable>
+<T extends Comparable<T>>
+```
+
+即使是接口，这里也写 `extends`，不写 `implements`。
+
+### 多个继承边界
+
+如果一个类型既要继承某个父类，又要实现多个接口，可以写：
+
+```java
+<T extends Animal & Runnable & Serializable>
+```
+
+含义是：
+
+```text
+T 必须是 Animal 的子类
+并且实现 Runnable
+并且实现 Serializable
+```
+
+注意：如果有类和接口同时出现，类必须放在第一个。
+
+### `Animal` 参数和 `<T extends Animal>` 的区别
+
+这两个写法看起来都能接收 `Animal` 子类，但语义不一样。
+
+| 写法 | 含义 |
+|---|---|
+| `void handle(Animal animal)` | 只关心它是 Animal，不保留具体子类类型 |
+| `<T extends Animal> T handle(T animal)` | 传入什么子类，返回仍保持什么子类 |
+
+判断方法：
+
+```text
+只调用父类能力，不关心返回具体子类：用父类参数
+参数和返回值要保持同一种具体类型：用 <T extends Parent>
+```
+
+### `? extends Parent` 怎么理解
+
+```java
+List<? extends Animal>
+```
+
+意思是：
+
+```text
+这是某种 Animal 集合
+可能是 List<Animal>
+可能是 List<Dog>
+也可能是 List<Cat>
+```
+
+因为真实类型不确定，所以适合读取：
+
+```text
+读出来至少可以当 Animal 用
+```
+
+但不适合写入具体子类：
+
+```text
+如果真实类型是 List<Dog>，就不能放 Cat
+如果真实类型是 List<Cat>，就不能放 Dog
+```
+
+所以记住：
+
+```text
+? extends Parent：上界，主要用来读
+```
+
+### `? super Child` 怎么理解
+
+```java
+List<? super Dog>
+```
+
+意思是：
+
+```text
+这是某种 Dog 的父类型集合
+可能是 List<Dog>
+可能是 List<Animal>
+也可能是 List<Object>
+```
+
+这种写法适合写入 `Dog`：
+
+```text
+无论真实集合是 Dog、Animal、Object，都可以安全放入 Dog
+```
+
+但读取时不精确，通常只能当 `Object` 看。
+
+所以记住：
+
+```text
+? super Child：下界，主要用来写
+```
+
+### `<T>` 和 `?` 怎么选
+
+`<T>` 用来建立类型关系，`?` 用来放宽接收范围。
+
+| 需求 | 推荐写法 |
+|---|---|
+| 参数和返回值必须是同一种类型 | `<T> T method(T value)` |
+| 参数是某个父类的子类，返回也保持子类 | `<T extends Parent> T method(T value)` |
+| 多个参数必须是同一种类型 | `<T> void method(T a, T b)` |
+| 只从集合中读取父类能力 | `List<? extends Parent>` |
+| 只往集合中写入某个子类 | `List<? super Child>` |
+| 不关心具体类型，只遍历或打印 | `List<?>` |
+
+### PECS 口诀
+
+```text
+Producer Extends, Consumer Super
+```
+
+中文理解：
+
+```text
+生产数据给我读：用 extends
+消费我写进去的数据：用 super
+```
+
+也就是：
+
+```text
+从集合里读 Animal：List<? extends Animal>
+往集合里放 Dog：List<? super Dog>
+```
+
+### 高频坑
+
+- `<T extends Parent>` 里的 `extends` 是给类型参数加上限，不是只能继承类。
+- `? extends Parent` 能安全读，不能随便写具体子类。
+- `? super Child` 能安全写入 `Child`，但读出来通常只能当 `Object`。
+- 需要保持“传什么类型，返回什么类型”时，用 `<T>`，不要用 `?`。
+
+### 面试追问
+
+- `<T extends Animal>` 和 `Animal` 参数有什么区别？  
+  `Animal` 参数会丢失具体子类关系，`<T extends Animal>` 可以保持传入类型和返回类型一致。
+- 为什么 `List<? extends Animal>` 不能随便添加 `Dog`？  
+  因为它真实类型可能是 `List<Cat>`，添加 `Dog` 会破坏类型安全。
+- 为什么 `List<? super Dog>` 读取不精确？  
+  因为真实类型可能是 `List<Object>`，编译器只能保证读出来是 `Object`。
+
 ## 多个泛型类型参数：T / R / K / V
 
 ### 一句话秒答

@@ -1007,7 +1007,317 @@ peek(Consumer)     查看或调试
 终止操作            toList / collect / forEach / count
 ```
 
-## 12. 快速判断方法
+## 12. 泛型接口继承
+
+### 先记结论
+
+泛型接口继承时，子接口有两种常见写法：
+
+```text
+1. 子接口继续保留泛型
+2. 子接口继承时直接把泛型类型固定死
+```
+
+示例：
+
+```java
+interface Repository<T> {
+    T findById(Long id);
+}
+
+// 继续保留泛型
+interface BaseRepository<T> extends Repository<T> {
+}
+
+// 直接固定泛型类型
+interface UserRepository extends Repository<User> {
+}
+```
+
+### 1. 子接口继续保留泛型
+
+```java
+interface Converter<T, R> {
+    R convert(T value);
+}
+
+interface StringConverter<R> extends Converter<String, R> {
+}
+```
+
+这里 `StringConverter<R>` 固定了入参类型是 `String`，但返回值 `R` 继续交给子接口使用者决定。
+
+使用：
+
+```java
+StringConverter<Integer> lengthConverter = s -> s.length();
+Integer length = lengthConverter.convert("java"); // 4
+
+StringConverter<Boolean> blankChecker = s -> s.isBlank();
+Boolean blank = blankChecker.convert("");
+```
+
+等价理解：
+
+```java
+StringConverter<Integer>
+```
+
+相当于：
+
+```java
+Converter<String, Integer>
+```
+
+### 2. 子接口固定全部泛型
+
+```java
+interface Converter<T, R> {
+    R convert(T value);
+}
+
+interface StringToIntegerConverter extends Converter<String, Integer> {
+}
+```
+
+使用：
+
+```java
+StringToIntegerConverter converter = s -> Integer.parseInt(s);
+Integer value = converter.convert("123");
+```
+
+此时抽象方法可以理解为：
+
+```java
+Integer convert(String value);
+```
+
+所以 Lambda 的参数是 `String`，返回值必须是 `Integer`。
+
+### 3. 子接口增加自己的泛型
+
+子接口可以继承父接口的泛型，也可以增加自己的泛型。
+
+```java
+interface Mapper<T, R> {
+    R map(T value);
+}
+
+interface EntityMapper<ID, T, R> extends Mapper<T, R> {
+    ID getId(T value);
+}
+```
+
+使用：
+
+```java
+class User {
+    private Long id;
+    private String name;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+class UserNameMapper implements EntityMapper<Long, User, String> {
+    @Override
+    public String map(User user) {
+        return user.getName();
+    }
+
+    @Override
+    public Long getId(User user) {
+        return user.getId();
+    }
+}
+```
+
+这里类型对应关系是：
+
+```text
+ID -> Long
+T  -> User
+R  -> String
+```
+
+### 4. 泛型接口实现类
+
+实现泛型接口时，也有两种写法。
+
+保留泛型：
+
+```java
+interface Repository<T> {
+    T findById(Long id);
+}
+
+class MemoryRepository<T> implements Repository<T> {
+    @Override
+    public T findById(Long id) {
+        return null;
+    }
+}
+```
+
+固定泛型：
+
+```java
+class UserRepository implements Repository<User> {
+    @Override
+    public User findById(Long id) {
+        return new User();
+    }
+}
+```
+
+区别：
+
+| 写法 | 含义 |
+|---|---|
+| `class MemoryRepository<T> implements Repository<T>` | 实现类继续是泛型类 |
+| `class UserRepository implements Repository<User>` | 实现类只服务于 `User` |
+
+### 5. 泛型函数式接口继承
+
+函数式接口也可以使用泛型继承。
+
+```java
+@FunctionalInterface
+interface Handler<T> {
+    void handle(T value);
+}
+
+@FunctionalInterface
+interface UserHandler extends Handler<User> {
+}
+```
+
+使用：
+
+```java
+UserHandler handler = user -> System.out.println(user.getName());
+handler.handle(new User());
+```
+
+`UserHandler` 固定了 `T` 是 `User`，所以它的方法可以理解为：
+
+```java
+void handle(User value);
+```
+
+### 6. 继承 Function
+
+自定义函数式接口可以继承 JDK 的 `Function`。
+
+```java
+@FunctionalInterface
+interface UserNameFunction extends Function<User, String> {
+}
+```
+
+使用：
+
+```java
+UserNameFunction getName = user -> user.getName();
+String name = getName.apply(user);
+```
+
+也可以写成方法引用：
+
+```java
+UserNameFunction getName = User::getName;
+```
+
+此时 `UserNameFunction` 本质上就是：
+
+```java
+Function<User, String>
+```
+
+只是名字更贴近业务。
+
+### 7. 继承 Predicate
+
+```java
+@FunctionalInterface
+interface UserPredicate extends Predicate<User> {
+}
+```
+
+使用：
+
+```java
+UserPredicate adult = user -> user.getAge() >= 18;
+boolean result = adult.test(user);
+```
+
+等价理解：
+
+```java
+Predicate<User> adult = user -> user.getAge() >= 18;
+```
+
+### 8. 继承时不要增加新的抽象方法
+
+函数式接口只能有一个抽象方法。
+
+```java
+@FunctionalInterface
+interface UserHandler extends Consumer<User> {
+    // 可以添加 default 方法
+    default void handleWithLog(User user) {
+        System.out.println("handle user");
+        accept(user);
+    }
+}
+```
+
+这样可以，因为 `handleWithLog` 是 `default` 方法，不算新的抽象方法。
+
+下面这样不行：
+
+```java
+@FunctionalInterface
+interface BadUserHandler extends Consumer<User> {
+    void anotherHandle(User user); // 错：新增了第二个抽象方法
+}
+```
+
+原因是 `Consumer<User>` 已经有一个抽象方法：
+
+```java
+void accept(User user);
+```
+
+再加一个 `anotherHandle`，就不再是函数式接口了。
+
+### 9. 泛型继承常见场景
+
+| 场景 | 写法 |
+|---|---|
+| 通用仓储接口 | `interface Repository<T>` |
+| 用户仓储接口 | `interface UserRepository extends Repository<User>` |
+| 通用转换接口 | `interface Converter<T, R>` |
+| 字符串转换接口 | `interface StringConverter<R> extends Converter<String, R>` |
+| 用户判断接口 | `interface UserPredicate extends Predicate<User>` |
+| 用户名提取接口 | `interface UserNameFunction extends Function<User, String>` |
+
+### 10. 快速判断
+
+```text
+父接口泛型还不确定 -> 子接口继续写 <T>
+父接口泛型已经明确 -> extends 时直接写具体类型
+想让接口语义更清楚 -> 可以继承 Function / Predicate / Consumer 起业务名字
+函数式接口继承 -> 不能新增第二个抽象方法
+```
+
+## 13. 快速判断方法
 
 看到一个 Lambda，按下面顺序判断：
 
@@ -1031,7 +1341,7 @@ peek(Consumer)     查看或调试
 两个参数               => BiXxx
 ```
 
-## 13. 一张总表
+## 14. 一张总表
 
 | 场景 | 优先想到 |
 |---|---|
