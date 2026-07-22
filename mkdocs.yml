@@ -68,6 +68,7 @@ nav:
       - 数据结构与算法: java/data_structure_algorithm.md
       - 数据结构与算法2: java/数据结构2.md
       - JVM: java/jvm.md
+      - Kafka: java/kafka.md
       - SSE: java/sse_spring_webflux_guide.md
 
 

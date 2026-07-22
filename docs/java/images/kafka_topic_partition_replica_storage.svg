@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="760" viewBox="0 0 1040 760" role="img" aria-labelledby="title desc">
+  <title id="title">Kafka Topic 分区副本存储示意图</title>
+  <desc id="desc">Topic A 有 6 个分区，每个分区 3 个副本，总共 18 个分区副本，分布在 3 个 Broker 上。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .page { fill: #f8fafc; }
+      .title { fill: #0f172a; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 22px; font-weight: 700; }
+      .subtitle { fill: #475569; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 14px; }
+      .broker { fill: #ffffff; stroke: #64748b; stroke-width: 2; filter: url(#shadow); }
+      .broker-title { fill: #0f172a; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 18px; font-weight: 700; }
+      .broker-sub { fill: #64748b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 13px; }
+      .leader { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .follower { fill: #fef3c7; stroke: #d97706; stroke-width: 2; }
+      .part-title { fill: #111827; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 15px; font-weight: 700; }
+      .part-role { fill: #334155; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 13px; }
+      .note { fill: #1e293b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 14px; }
+      .tiny { fill: #64748b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 12px; }
+      .summary { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.5; }
+      .legend-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect class="page" x="0" y="0" width="1040" height="760"/>
+
+  <text class="title" x="520" y="40" text-anchor="middle">Topic A 存储分布：6 个分区 × 3 个副本 = 18 个分区副本</text>
+  <text class="subtitle" x="520" y="66" text-anchor="middle">每个 Partition 只有 1 个 Leader，另外 2 个副本是 Follower；Leader 尽量分散到不同 Broker 上</text>
+
+  <rect class="summary" x="120" y="90" width="800" height="62" rx="8"/>
+  <text class="note" x="520" y="116" text-anchor="middle">Topic A: partitions = 6, replication.factor = 3</text>
+  <text class="note" x="520" y="139" text-anchor="middle">P0、P1、P2、P3、P4、P5 每个都有 3 份副本，共 18 份，分别落在 Broker 1、Broker 2、Broker 3</text>
+
+  <rect class="broker" x="45" y="185" width="300" height="405" rx="10"/>
+  <text class="broker-title" x="195" y="220" text-anchor="middle">Broker 1</text>
+  <text class="broker-sub" x="195" y="244" text-anchor="middle">保存 6 个分区副本</text>
+
+  <rect class="leader" x="80" y="270" width="105" height="60" rx="7"/>
+  <text class="part-title" x="132.5" y="294" text-anchor="middle">P0</text>
+  <text class="part-role" x="132.5" y="315" text-anchor="middle">Leader</text>
+
+  <rect class="leader" x="205" y="270" width="105" height="60" rx="7"/>
+  <text class="part-title" x="257.5" y="294" text-anchor="middle">P3</text>
+  <text class="part-role" x="257.5" y="315" text-anchor="middle">Leader</text>
+
+  <rect class="follower" x="80" y="350" width="105" height="60" rx="7"/>
+  <text class="part-title" x="132.5" y="374" text-anchor="middle">P1</text>
+  <text class="part-role" x="132.5" y="395" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="205" y="350" width="105" height="60" rx="7"/>
+  <text class="part-title" x="257.5" y="374" text-anchor="middle">P2</text>
+  <text class="part-role" x="257.5" y="395" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="80" y="430" width="105" height="60" rx="7"/>
+  <text class="part-title" x="132.5" y="454" text-anchor="middle">P4</text>
+  <text class="part-role" x="132.5" y="475" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="205" y="430" width="105" height="60" rx="7"/>
+  <text class="part-title" x="257.5" y="454" text-anchor="middle">P5</text>
+  <text class="part-role" x="257.5" y="475" text-anchor="middle">Follower</text>
+
+  <text class="tiny" x="195" y="535" text-anchor="middle">Leader 数：2，Follower 数：4</text>
+
+  <rect class="broker" x="370" y="185" width="300" height="405" rx="10"/>
+  <text class="broker-title" x="520" y="220" text-anchor="middle">Broker 2</text>
+  <text class="broker-sub" x="520" y="244" text-anchor="middle">保存 6 个分区副本</text>
+
+  <rect class="leader" x="405" y="270" width="105" height="60" rx="7"/>
+  <text class="part-title" x="457.5" y="294" text-anchor="middle">P1</text>
+  <text class="part-role" x="457.5" y="315" text-anchor="middle">Leader</text>
+
+  <rect class="leader" x="530" y="270" width="105" height="60" rx="7"/>
+  <text class="part-title" x="582.5" y="294" text-anchor="middle">P4</text>
+  <text class="part-role" x="582.5" y="315" text-anchor="middle">Leader</text>
+
+  <rect class="follower" x="405" y="350" width="105" height="60" rx="7"/>
+  <text class="part-title" x="457.5" y="374" text-anchor="middle">P0</text>
+  <text class="part-role" x="457.5" y="395" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="530" y="350" width="105" height="60" rx="7"/>
+  <text class="part-title" x="582.5" y="374" text-anchor="middle">P2</text>
+  <text class="part-role" x="582.5" y="395" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="405" y="430" width="105" height="60" rx="7"/>
+  <text class="part-title" x="457.5" y="454" text-anchor="middle">P3</text>
+  <text class="part-role" x="457.5" y="475" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="530" y="430" width="105" height="60" rx="7"/>
+  <text class="part-title" x="582.5" y="454" text-anchor="middle">P5</text>
+  <text class="part-role" x="582.5" y="475" text-anchor="middle">Follower</text>
+
+  <text class="tiny" x="520" y="535" text-anchor="middle">Leader 数：2，Follower 数：4</text>
+
+  <rect class="broker" x="695" y="185" width="300" height="405" rx="10"/>
+  <text class="broker-title" x="845" y="220" text-anchor="middle">Broker 3</text>
+  <text class="broker-sub" x="845" y="244" text-anchor="middle">保存 6 个分区副本</text>
+
+  <rect class="leader" x="730" y="270" width="105" height="60" rx="7"/>
+  <text class="part-title" x="782.5" y="294" text-anchor="middle">P2</text>
+  <text class="part-role" x="782.5" y="315" text-anchor="middle">Leader</text>
+
+  <rect class="leader" x="855" y="270" width="105" height="60" rx="7"/>
+  <text class="part-title" x="907.5" y="294" text-anchor="middle">P5</text>
+  <text class="part-role" x="907.5" y="315" text-anchor="middle">Leader</text>
+
+  <rect class="follower" x="730" y="350" width="105" height="60" rx="7"/>
+  <text class="part-title" x="782.5" y="374" text-anchor="middle">P0</text>
+  <text class="part-role" x="782.5" y="395" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="855" y="350" width="105" height="60" rx="7"/>
+  <text class="part-title" x="907.5" y="374" text-anchor="middle">P1</text>
+  <text class="part-role" x="907.5" y="395" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="730" y="430" width="105" height="60" rx="7"/>
+  <text class="part-title" x="782.5" y="454" text-anchor="middle">P3</text>
+  <text class="part-role" x="782.5" y="475" text-anchor="middle">Follower</text>
+
+  <rect class="follower" x="855" y="430" width="105" height="60" rx="7"/>
+  <text class="part-title" x="907.5" y="454" text-anchor="middle">P4</text>
+  <text class="part-role" x="907.5" y="475" text-anchor="middle">Follower</text>
+
+  <text class="tiny" x="845" y="535" text-anchor="middle">Leader 数：2，Follower 数：4</text>
+
+  <rect class="legend-box" x="220" y="625" width="600" height="82" rx="8"/>
+  <rect class="leader" x="255" y="648" width="24" height="16" rx="3"/>
+  <text class="note" x="292" y="661">Leader：生产者写入、消费者读取的主副本</text>
+  <rect class="follower" x="255" y="678" width="24" height="16" rx="3"/>
+  <text class="note" x="292" y="691">Follower：从 Leader 同步数据，用于故障切换和高可用</text>
+
+  <text class="tiny" x="520" y="735" text-anchor="middle">示例分布只是为了说明原理，真实集群中 Kafka 会根据分区分配和负载情况决定具体落点。</text>
+</svg>

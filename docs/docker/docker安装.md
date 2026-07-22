@@ -17,7 +17,7 @@ sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# Add the repository to Apt sources:
+
 sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
 URIs: https://download.docker.com/linux/ubuntu
@@ -55,12 +55,16 @@ sudo apt install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING contain
 ## 命令
 
 ```agsl
+加入用户组
+sudo usermod -aG docker $USER
+newgrp docker
+
 systemctl start docker  启动
 systemctl stop docker 关闭
 systemctl status docker  状态
 systemctl restart docker 重启
 docker version  版本
-systemctl enable docker  开机自起
+sudo systemctl enable docker  开机自起
 
 docker stats: 内存占用情况
 docker images 查看镜像       -a  所有信息      --digests  完整镜像id
@@ -99,13 +103,13 @@ Environment="NO_PROXY=localhost,127.0.0.1,192.168.0.0/16"
 EOF
 
 
-systemctl daemon-reexec
+sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 
 
 检查是否生效：
 
-systemctl show --property=Environment docker
+sudo systemctl show --property=Environment docker
 
 ```

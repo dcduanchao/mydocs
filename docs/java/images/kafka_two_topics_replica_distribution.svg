@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="820" viewBox="0 0 1180 820" role="img" aria-labelledby="title desc">
+  <title id="title">Kafka 多 Topic 分区副本分布示意图</title>
+  <desc id="desc">Topic A 有 6 分区 3 副本，Topic B 有 9 分区 3 副本，分布在 3 个 Broker 上，总共 45 个分区副本。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .page { fill: #f8fafc; }
+      .title { fill: #0f172a; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 22px; font-weight: 700; }
+      .subtitle { fill: #475569; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 14px; }
+      .summary { fill: #eff6ff; stroke: #2563eb; stroke-width: 1.7; }
+      .broker { fill: #ffffff; stroke: #64748b; stroke-width: 2; filter: url(#shadow); }
+      .broker-title { fill: #0f172a; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 18px; font-weight: 700; }
+      .broker-sub { fill: #64748b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 13px; }
+      .section-a { fill: #f0fdf4; stroke: #22c55e; stroke-width: 1.5; }
+      .section-b { fill: #fff7ed; stroke: #f97316; stroke-width: 1.5; }
+      .section-title { fill: #1e293b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 14px; font-weight: 700; }
+      .leader { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.8; }
+      .follower { fill: #fef3c7; stroke: #d97706; stroke-width: 1.8; }
+      .part { fill: #111827; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 12px; font-weight: 700; }
+      .role { fill: #334155; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 10px; }
+      .note { fill: #1e293b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 14px; }
+      .tiny { fill: #64748b; font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 12px; }
+      .legend { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect class="page" x="0" y="0" width="1180" height="820"/>
+
+  <text class="title" x="590" y="40" text-anchor="middle">3 Broker 下多个 Topic 的分区副本分布</text>
+  <text class="subtitle" x="590" y="66" text-anchor="middle">Topic A：6 分区 × 3 副本 = 18；Topic B：9 分区 × 3 副本 = 27；合计 45 个分区副本</text>
+
+  <rect class="summary" x="130" y="90" width="920" height="70" rx="8"/>
+  <text class="note" x="590" y="119" text-anchor="middle">总 Leader 数 = Topic A 6 个 + Topic B 9 个 = 15 个</text>
+  <text class="note" x="590" y="143" text-anchor="middle">理想均衡：每台 Broker 约 15 个分区副本，其中约 5 个 Leader、10 个 Follower</text>
+
+  <rect class="broker" x="35" y="195" width="350" height="500" rx="10"/>
+  <text class="broker-title" x="210" y="230" text-anchor="middle">Broker 1</text>
+  <text class="broker-sub" x="210" y="252" text-anchor="middle">约 15 个副本：5 Leader + 10 Follower</text>
+
+  <rect class="section-a" x="60" y="275" width="300" height="145" rx="8"/>
+  <text class="section-title" x="210" y="300" text-anchor="middle">Topic A 副本：6 个</text>
+  <rect class="leader" x="78" y="318" width="84" height="38" rx="5"/>
+  <text class="part" x="120" y="333" text-anchor="middle">A-P0</text>
+  <text class="role" x="120" y="349" text-anchor="middle">Leader</text>
+  <rect class="leader" x="178" y="318" width="84" height="38" rx="5"/>
+  <text class="part" x="220" y="333" text-anchor="middle">A-P3</text>
+  <text class="role" x="220" y="349" text-anchor="middle">Leader</text>
+  <rect class="follower" x="278" y="318" width="64" height="38" rx="5"/>
+  <text class="part" x="310" y="333" text-anchor="middle">A-P1</text>
+  <text class="role" x="310" y="349" text-anchor="middle">F</text>
+  <rect class="follower" x="78" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="110" y="391" text-anchor="middle">A-P2</text>
+  <rect class="follower" x="158" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="190" y="391" text-anchor="middle">A-P4</text>
+  <rect class="follower" x="238" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="270" y="391" text-anchor="middle">A-P5</text>
+
+  <rect class="section-b" x="60" y="440" width="300" height="220" rx="8"/>
+  <text class="section-title" x="210" y="465" text-anchor="middle">Topic B 副本：9 个</text>
+  <rect class="leader" x="78" y="485" width="84" height="38" rx="5"/>
+  <text class="part" x="120" y="500" text-anchor="middle">B-P0</text>
+  <text class="role" x="120" y="516" text-anchor="middle">Leader</text>
+  <rect class="leader" x="178" y="485" width="84" height="38" rx="5"/>
+  <text class="part" x="220" y="500" text-anchor="middle">B-P3</text>
+  <text class="role" x="220" y="516" text-anchor="middle">Leader</text>
+  <rect class="leader" x="278" y="485" width="64" height="38" rx="5"/>
+  <text class="part" x="310" y="500" text-anchor="middle">B-P6</text>
+  <text class="role" x="310" y="516" text-anchor="middle">Leader</text>
+  <rect class="follower" x="78" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="110" y="561" text-anchor="middle">B-P1</text>
+  <rect class="follower" x="158" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="190" y="561" text-anchor="middle">B-P2</text>
+  <rect class="follower" x="238" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="270" y="561" text-anchor="middle">B-P4</text>
+  <rect class="follower" x="78" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="110" y="611" text-anchor="middle">B-P5</text>
+  <rect class="follower" x="158" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="190" y="611" text-anchor="middle">B-P7</text>
+  <rect class="follower" x="238" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="270" y="611" text-anchor="middle">B-P8</text>
+
+  <rect class="broker" x="415" y="195" width="350" height="500" rx="10"/>
+  <text class="broker-title" x="590" y="230" text-anchor="middle">Broker 2</text>
+  <text class="broker-sub" x="590" y="252" text-anchor="middle">约 15 个副本：5 Leader + 10 Follower</text>
+
+  <rect class="section-a" x="440" y="275" width="300" height="145" rx="8"/>
+  <text class="section-title" x="590" y="300" text-anchor="middle">Topic A 副本：6 个</text>
+  <rect class="leader" x="458" y="318" width="84" height="38" rx="5"/>
+  <text class="part" x="500" y="333" text-anchor="middle">A-P1</text>
+  <text class="role" x="500" y="349" text-anchor="middle">Leader</text>
+  <rect class="leader" x="558" y="318" width="84" height="38" rx="5"/>
+  <text class="part" x="600" y="333" text-anchor="middle">A-P4</text>
+  <text class="role" x="600" y="349" text-anchor="middle">Leader</text>
+  <rect class="follower" x="658" y="318" width="64" height="38" rx="5"/>
+  <text class="part" x="690" y="333" text-anchor="middle">A-P0</text>
+  <text class="role" x="690" y="349" text-anchor="middle">F</text>
+  <rect class="follower" x="458" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="490" y="391" text-anchor="middle">A-P2</text>
+  <rect class="follower" x="538" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="570" y="391" text-anchor="middle">A-P3</text>
+  <rect class="follower" x="618" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="650" y="391" text-anchor="middle">A-P5</text>
+
+  <rect class="section-b" x="440" y="440" width="300" height="220" rx="8"/>
+  <text class="section-title" x="590" y="465" text-anchor="middle">Topic B 副本：9 个</text>
+  <rect class="leader" x="458" y="485" width="84" height="38" rx="5"/>
+  <text class="part" x="500" y="500" text-anchor="middle">B-P1</text>
+  <text class="role" x="500" y="516" text-anchor="middle">Leader</text>
+  <rect class="leader" x="558" y="485" width="84" height="38" rx="5"/>
+  <text class="part" x="600" y="500" text-anchor="middle">B-P4</text>
+  <text class="role" x="600" y="516" text-anchor="middle">Leader</text>
+  <rect class="leader" x="658" y="485" width="64" height="38" rx="5"/>
+  <text class="part" x="690" y="500" text-anchor="middle">B-P7</text>
+  <text class="role" x="690" y="516" text-anchor="middle">Leader</text>
+  <rect class="follower" x="458" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="490" y="561" text-anchor="middle">B-P0</text>
+  <rect class="follower" x="538" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="570" y="561" text-anchor="middle">B-P2</text>
+  <rect class="follower" x="618" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="650" y="561" text-anchor="middle">B-P3</text>
+  <rect class="follower" x="458" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="490" y="611" text-anchor="middle">B-P5</text>
+  <rect class="follower" x="538" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="570" y="611" text-anchor="middle">B-P6</text>
+  <rect class="follower" x="618" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="650" y="611" text-anchor="middle">B-P8</text>
+
+  <rect class="broker" x="795" y="195" width="350" height="500" rx="10"/>
+  <text class="broker-title" x="970" y="230" text-anchor="middle">Broker 3</text>
+  <text class="broker-sub" x="970" y="252" text-anchor="middle">约 15 个副本：5 Leader + 10 Follower</text>
+
+  <rect class="section-a" x="820" y="275" width="300" height="145" rx="8"/>
+  <text class="section-title" x="970" y="300" text-anchor="middle">Topic A 副本：6 个</text>
+  <rect class="leader" x="838" y="318" width="84" height="38" rx="5"/>
+  <text class="part" x="880" y="333" text-anchor="middle">A-P2</text>
+  <text class="role" x="880" y="349" text-anchor="middle">Leader</text>
+  <rect class="leader" x="938" y="318" width="84" height="38" rx="5"/>
+  <text class="part" x="980" y="333" text-anchor="middle">A-P5</text>
+  <text class="role" x="980" y="349" text-anchor="middle">Leader</text>
+  <rect class="follower" x="1038" y="318" width="64" height="38" rx="5"/>
+  <text class="part" x="1070" y="333" text-anchor="middle">A-P0</text>
+  <text class="role" x="1070" y="349" text-anchor="middle">F</text>
+  <rect class="follower" x="838" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="870" y="391" text-anchor="middle">A-P1</text>
+  <rect class="follower" x="918" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="950" y="391" text-anchor="middle">A-P3</text>
+  <rect class="follower" x="998" y="370" width="64" height="34" rx="5"/>
+  <text class="part" x="1030" y="391" text-anchor="middle">A-P4</text>
+
+  <rect class="section-b" x="820" y="440" width="300" height="220" rx="8"/>
+  <text class="section-title" x="970" y="465" text-anchor="middle">Topic B 副本：9 个</text>
+  <rect class="leader" x="838" y="485" width="84" height="38" rx="5"/>
+  <text class="part" x="880" y="500" text-anchor="middle">B-P2</text>
+  <text class="role" x="880" y="516" text-anchor="middle">Leader</text>
+  <rect class="leader" x="938" y="485" width="84" height="38" rx="5"/>
+  <text class="part" x="980" y="500" text-anchor="middle">B-P5</text>
+  <text class="role" x="980" y="516" text-anchor="middle">Leader</text>
+  <rect class="leader" x="1038" y="485" width="64" height="38" rx="5"/>
+  <text class="part" x="1070" y="500" text-anchor="middle">B-P8</text>
+  <text class="role" x="1070" y="516" text-anchor="middle">Leader</text>
+  <rect class="follower" x="838" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="870" y="561" text-anchor="middle">B-P0</text>
+  <rect class="follower" x="918" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="950" y="561" text-anchor="middle">B-P1</text>
+  <rect class="follower" x="998" y="540" width="64" height="34" rx="5"/>
+  <text class="part" x="1030" y="561" text-anchor="middle">B-P3</text>
+  <rect class="follower" x="838" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="870" y="611" text-anchor="middle">B-P4</text>
+  <rect class="follower" x="918" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="950" y="611" text-anchor="middle">B-P6</text>
+  <rect class="follower" x="998" y="590" width="64" height="34" rx="5"/>
+  <text class="part" x="1030" y="611" text-anchor="middle">B-P7</text>
+
+  <rect class="legend" x="270" y="730" width="640" height="50" rx="8"/>
+  <rect class="leader" x="300" y="746" width="24" height="16" rx="3"/>
+  <text class="tiny" x="335" y="758">Leader 副本</text>
+  <rect class="follower" x="455" y="746" width="24" height="16" rx="3"/>
+  <text class="tiny" x="490" y="758">Follower 副本</text>
+  <text class="tiny" x="655" y="758">每个 Broker 上同时保存多个 Topic 的分区副本</text>
+</svg>
