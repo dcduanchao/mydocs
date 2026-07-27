@@ -70,6 +70,7 @@ nav:
       - JVM: java/jvm.md
       - Kafka: java/kafka.md
       - SSE: java/sse_spring_webflux_guide.md
+      - springboot多项目构建主pom: java/spring_modules.md
 
 
   - Linux:
@@ -94,6 +95,7 @@ nav:
       - 暗转: docker/docker安装.md
       - nginx: docker/nginx.md
       - 常用软件: docker/docker-部署镜像.md
+      - Kafka Ubuntu Docker 部署: docker/kafka_ubuntu_docker_deploy.md
 
   - 项目:
       - 项目说明: project/about.md

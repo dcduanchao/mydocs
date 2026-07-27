@@ -172,461 +172,12 @@ Kafka 早期依赖 ZooKeeper 保存元数据和做集群协调。新版本 Kafka
 
 ---
 
-## 4. 单机部署
+## 4. Kafka 安装与部署
 
-下面以 Kafka 3.x KRaft 模式为例。
+Kafka 的 Docker 安装、单机与三节点集群部署、Kafka UI 配置，统一参考：[Ubuntu Docker 部署 Kafka](../docker/kafka_ubuntu_docker_deploy.md)。
+## 5. Topic 常用命令
 
-### 4.1 环境要求
-
-- JDK 17 或与当前 Kafka 版本兼容的 JDK。
-- Linux 服务器或本地开发环境。
-- 生产环境建议单独挂载数据盘。
-
-查看 Java 版本：
-
-```bash
-java -version
-```
-
-### 4.2 下载 Kafka
-
-```bash
-wget https://downloads.apache.org/kafka/3.8.0/kafka_2.13-3.8.0.tgz
-tar -zxvf kafka_2.13-3.8.0.tgz
-cd kafka_2.13-3.8.0
-```
-
-实际使用时以 Apache Kafka 官网最新稳定版本为准。
-
-### 4.3 配置单机 KRaft
-
-编辑配置文件：
-
-```bash
-vim config/kraft/server.properties
-```
-
-重点配置：
-
-```properties
-process.roles=broker,controller
-node.id=1
-controller.quorum.voters=1@localhost:9093
-
-listeners=PLAINTEXT://:9092,CONTROLLER://:9093
-advertised.listeners=PLAINTEXT://localhost:9092
-controller.listener.names=CONTROLLER
-
-log.dirs=/data/kafka-logs
-num.partitions=3
-```
-
-关键说明：
-
-- `process.roles`：当前节点角色，单机可以同时是 broker 和 controller。
-- `node.id`：节点唯一 ID。
-- `controller.quorum.voters`：Controller 投票节点列表。
-- `listeners`：服务监听地址。
-- `advertised.listeners`：客户端实际访问地址，生产环境不能随便写 `localhost`。
-- `log.dirs`：Kafka 数据目录。
-- `num.partitions`：默认分区数量。
-
-### 4.4 初始化元数据
-
-生成集群 ID：
-
-```bash
-KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
-```
-
-格式化存储目录：
-
-```bash
-bin/kafka-storage.sh format -t "$KAFKA_CLUSTER_ID" -c config/kraft/server.properties
-```
-
-### 4.5 启动 Kafka
-
-```bash
-bin/kafka-server-start.sh -daemon config/kraft/server.properties
-```
-
-查看进程：
-
-```bash
-jps
-```
-
-停止 Kafka：
-
-```bash
-bin/kafka-server-stop.sh
-```
-
----
-
-## 5. 集群部署
-
-生产环境通常至少 3 个节点，示例：
-
-```text
-192.168.1.101  node.id=1
-192.168.1.102  node.id=2
-192.168.1.103  node.id=3
-```
-
-### 5.1 Broker 1 配置
-
-```properties
-process.roles=broker,controller
-node.id=1
-controller.quorum.voters=1@192.168.1.101:9093,2@192.168.1.102:9093,3@192.168.1.103:9093
-
-listeners=PLAINTEXT://:9092,CONTROLLER://:9093
-advertised.listeners=PLAINTEXT://192.168.1.101:9092
-controller.listener.names=CONTROLLER
-
-log.dirs=/data/kafka-logs
-num.partitions=6
-default.replication.factor=3
-min.insync.replicas=2
-```
-
-### 5.2 Broker 2 配置
-
-```properties
-process.roles=broker,controller
-node.id=2
-controller.quorum.voters=1@192.168.1.101:9093,2@192.168.1.102:9093,3@192.168.1.103:9093
-
-listeners=PLAINTEXT://:9092,CONTROLLER://:9093
-advertised.listeners=PLAINTEXT://192.168.1.102:9092
-controller.listener.names=CONTROLLER
-
-log.dirs=/data/kafka-logs
-num.partitions=6
-default.replication.factor=3
-min.insync.replicas=2
-```
-
-### 5.3 Broker 3 配置
-
-```properties
-process.roles=broker,controller
-node.id=3
-controller.quorum.voters=1@192.168.1.101:9093,2@192.168.1.102:9093,3@192.168.1.103:9093
-
-listeners=PLAINTEXT://:9092,CONTROLLER://:9093
-advertised.listeners=PLAINTEXT://192.168.1.103:9092
-controller.listener.names=CONTROLLER
-
-log.dirs=/data/kafka-logs
-num.partitions=6
-default.replication.factor=3
-min.insync.replicas=2
-```
-
-### 5.4 初始化集群
-
-三台机器必须使用同一个集群 ID。
-
-在任意一台机器生成：
-
-```bash
-KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
-echo "$KAFKA_CLUSTER_ID"
-```
-
-然后在每台机器执行：
-
-```bash
-bin/kafka-storage.sh format -t "$KAFKA_CLUSTER_ID" -c config/kraft/server.properties
-```
-
-### 5.5 启动集群
-
-每台机器执行：
-
-```bash
-bin/kafka-server-start.sh -daemon config/kraft/server.properties
-```
-
-查看集群 API 版本：
-
-```bash
-bin/kafka-broker-api-versions.sh --bootstrap-server 192.168.1.101:9092
-```
-
-### 5.6 Docker 单机部署
-
-开发、测试环境可以直接使用 Docker Compose 启动单节点 Kafka。下面示例使用 KRaft 模式，不依赖 ZooKeeper。
-
-新建 `docker-compose.yml`：
-
-```yaml
-services:
-  kafka:
-    image: confluentinc/cp-kafka:7.7.0
-    container_name: kafka
-    ports:
-      - "9092:9092"
-    environment:
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
-      KAFKA_LISTENERS: "PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_NUM_PARTITIONS: 3
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-
-volumes:
-  kafka-data:
-```
-
-启动：
-
-```bash
-docker compose up -d
-```
-
-查看日志：
-
-```bash
-docker logs -f kafka
-```
-
-创建 Topic：
-
-```bash
-docker exec -it kafka kafka-topics \
-  --bootstrap-server kafka:29092 \
-  --create \
-  --topic order-create \
-  --partitions 3 \
-  --replication-factor 1
-```
-
-查看 Topic：
-
-```bash
-docker exec -it kafka kafka-topics \
-  --bootstrap-server kafka:29092 \
-  --describe \
-  --topic order-create
-```
-
-生产消息：
-
-```bash
-docker exec -it kafka kafka-console-producer \
-  --bootstrap-server kafka:29092 \
-  --topic order-create
-```
-
-消费消息：
-
-```bash
-docker exec -it kafka kafka-console-consumer \
-  --bootstrap-server kafka:29092 \
-  --topic order-create \
-  --from-beginning
-```
-
-宿主机 Java 程序连接地址：
-
-```properties
-bootstrap.servers=localhost:9092
-```
-
-如果 Docker 部署在远程服务器上，需要把 `KAFKA_ADVERTISED_LISTENERS` 里的 `localhost` 改成服务器 IP：
-
-```yaml
-KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://192.168.1.101:9092"
-```
-
-否则客户端可能能连上 `9092`，但拿到 Broker 元数据后又去连接 `localhost`，最终访问失败。
-
-### 5.7 Docker 三节点集群部署
-
-下面是单台机器上用 Docker Compose 模拟 3 个 Broker 的 KRaft 集群。生产环境可以改成三台机器部署，但要把 `advertised.listeners` 改成每台机器真实 IP。
-
-新建 `docker-compose.yml`：
-
-```yaml
-services:
-  kafka1:
-    image: confluentinc/cp-kafka:7.7.0
-    container_name: kafka1
-    ports:
-      - "19092:19092"
-    environment:
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093,2@kafka2:29093,3@kafka3:29093"
-      KAFKA_LISTENERS: "PLAINTEXT://kafka1:29092,CONTROLLER://kafka1:29093,PLAINTEXT_HOST://0.0.0.0:19092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka1:29092,PLAINTEXT_HOST://localhost:19092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_MIN_INSYNC_REPLICAS: 2
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_NUM_PARTITIONS: 6
-    volumes:
-      - kafka1-data:/var/lib/kafka/data
-
-  kafka2:
-    image: confluentinc/cp-kafka:7.7.0
-    container_name: kafka2
-    ports:
-      - "29092:29092"
-    environment:
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-      KAFKA_NODE_ID: 2
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093,2@kafka2:29093,3@kafka3:29093"
-      KAFKA_LISTENERS: "PLAINTEXT://kafka2:29092,CONTROLLER://kafka2:29093,PLAINTEXT_HOST://0.0.0.0:29092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka2:29092,PLAINTEXT_HOST://localhost:29092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_MIN_INSYNC_REPLICAS: 2
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_NUM_PARTITIONS: 6
-    volumes:
-      - kafka2-data:/var/lib/kafka/data
-
-  kafka3:
-    image: confluentinc/cp-kafka:7.7.0
-    container_name: kafka3
-    ports:
-      - "39092:39092"
-    environment:
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
-      KAFKA_NODE_ID: 3
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:29093,2@kafka2:29093,3@kafka3:29093"
-      KAFKA_LISTENERS: "PLAINTEXT://kafka3:29092,CONTROLLER://kafka3:29093,PLAINTEXT_HOST://0.0.0.0:39092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka3:29092,PLAINTEXT_HOST://localhost:39092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_MIN_INSYNC_REPLICAS: 2
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_NUM_PARTITIONS: 6
-    volumes:
-      - kafka3-data:/var/lib/kafka/data
-
-volumes:
-  kafka1-data:
-  kafka2-data:
-  kafka3-data:
-```
-
-启动集群：
-
-```bash
-docker compose up -d
-```
-
-查看容器：
-
-```bash
-docker compose ps
-```
-
-创建 3 副本 Topic：
-
-```bash
-docker exec -it kafka1 kafka-topics \
-  --bootstrap-server kafka1:29092 \
-  --create \
-  --topic order-create \
-  --partitions 6 \
-  --replication-factor 3
-```
-
-查看 Topic 分区和副本：
-
-```bash
-docker exec -it kafka1 kafka-topics \
-  --bootstrap-server kafka1:29092 \
-  --describe \
-  --topic order-create
-```
-
-正常情况下可以看到不同分区的 Leader 分布在 `1`、`2`、`3` 三个节点上，`Replicas` 有 3 个副本，`Isr` 也应该有 3 个同步副本。
-
-宿主机 Java 程序连接地址：
-
-```properties
-bootstrap.servers=localhost:19092,localhost:29092,localhost:39092
-```
-
-如果在远程服务器部署，把三个 `PLAINTEXT_HOST` 的 advertised 地址改成服务器 IP：
-
-```yaml
-KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka1:29092,PLAINTEXT_HOST://192.168.1.101:19092"
-KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka2:29092,PLAINTEXT_HOST://192.168.1.101:29092"
-KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka3:29092,PLAINTEXT_HOST://192.168.1.101:39092"
-```
-
-注意：上面三行分别放到 `kafka1`、`kafka2`、`kafka3` 的 `environment` 中，不是放在同一个服务里。
-
-### 5.8 Docker 部署常见问题
-
-#### 5.8.1 容器内地址和宿主机地址
-
-Docker Kafka 通常需要两套监听地址：
-
-- 容器内地址：容器之间访问，例如 `kafka1:29092`。
-- 宿主机地址：宿主机或外部 Java 程序访问，例如 `localhost:19092` 或 `192.168.1.101:19092`。
-
-`KAFKA_LISTENERS` 表示 Kafka 监听哪些地址，`KAFKA_ADVERTISED_LISTENERS` 表示 Kafka 告诉客户端应该连接哪些地址。客户端最终连接的是 advertised 地址。
-
-#### 5.8.2 修改 CLUSTER_ID 后启动失败
-
-Kafka 数据目录格式化后会记录集群 ID。如果已经启动过容器并写入了 volume，再修改 `CLUSTER_ID`，可能出现集群 ID 不一致。
-
-开发环境可以删除 volume 后重建：
-
-```bash
-docker compose down -v
-docker compose up -d
-```
-
-生产环境不要随意删除 volume，否则会丢失 Kafka 数据。
-
-#### 5.8.3 单机和集群如何选择
-
-- 本地开发：单机 Kafka 即可，副本数设置为 1。
-- 测试环境：可以用单机三 Broker 模拟集群。
-- 生产环境：建议至少 3 台机器，每台机器一个 Broker，重要 Topic 使用 3 副本。
-
----
-
-## 6. Topic 常用命令
-
-### 6.1 创建 Topic
+### 5.1 创建 Topic
 
 ```bash
 bin/kafka-topics.sh \
@@ -637,7 +188,7 @@ bin/kafka-topics.sh \
   --replication-factor 3
 ```
 
-### 6.2 查看 Topic 列表
+### 5.2 查看 Topic 列表
 
 ```bash
 bin/kafka-topics.sh \
@@ -645,7 +196,7 @@ bin/kafka-topics.sh \
   --list
 ```
 
-### 6.3 查看 Topic 详情
+### 5.3 查看 Topic 详情
 
 ```bash
 bin/kafka-topics.sh \
@@ -667,7 +218,7 @@ Partition: 0  Leader: 1  Replicas: 1,2,3  Isr: 1,2,3
 - `Replicas`：该分区的全部副本。
 - `Isr`：当前和 Leader 保持同步的副本集合。
 
-### 6.4 增加分区
+### 5.4 增加分区
 
 ```bash
 bin/kafka-topics.sh \
@@ -679,7 +230,7 @@ bin/kafka-topics.sh \
 
 注意：分区只能增加，不能直接减少。增加分区可能影响按 key 的顺序性和分区路由结果。
 
-### 6.5 删除 Topic
+### 5.5 删除 Topic
 
 ```bash
 bin/kafka-topics.sh \
@@ -688,7 +239,7 @@ bin/kafka-topics.sh \
   --topic order-create
 ```
 
-### 6.6 Java 代码创建 Topic
+### 5.6 Java 代码创建 Topic
 
 Kafka 可以通过 `AdminClient` 在代码里创建 Topic，适合服务启动时初始化测试 Topic，或在管理后台里动态创建 Topic。
 
@@ -791,9 +342,9 @@ public class KafkaTopicCreateIfAbsentDemo {
 
 ---
 
-## 7. 生产者和消费者命令
+## 6. 生产者和消费者命令
 
-### 7.1 控制台生产者
+### 6.1 控制台生产者
 
 ```bash
 bin/kafka-console-producer.sh \
@@ -808,7 +359,7 @@ order-1001
 order-1002
 ```
 
-### 7.2 控制台消费者
+### 6.2 控制台消费者
 
 ```bash
 bin/kafka-console-consumer.sh \
@@ -826,7 +377,7 @@ bin/kafka-console-consumer.sh \
   --group order-service
 ```
 
-### 7.3 查看消费者组
+### 6.3 查看消费者组
 
 ```bash
 bin/kafka-consumer-groups.sh \
@@ -834,7 +385,7 @@ bin/kafka-consumer-groups.sh \
   --list
 ```
 
-### 7.4 查看消费进度
+### 6.4 查看消费进度
 
 ```bash
 bin/kafka-consumer-groups.sh \
@@ -851,9 +402,9 @@ bin/kafka-consumer-groups.sh \
 
 ---
 
-## 8. Java 客户端使用
+## 7. Java 客户端使用
 
-### 8.1 Maven 依赖
+### 7.1 Maven 依赖
 
 ```xml
 <dependency>
@@ -872,7 +423,7 @@ bin/kafka-consumer-groups.sh \
 </dependency>
 ```
 
-### 8.2 原生 Producer
+### 7.2 原生 Producer
 
 ```java
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -910,7 +461,7 @@ public class KafkaProducerDemo {
 }
 ```
 
-### 8.3 原生 Consumer
+### 7.3 原生 Consumer
 
 ```java
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -951,7 +502,7 @@ public class KafkaConsumerDemo {
 }
 ```
 
-### 8.4 Spring Boot Producer
+### 7.4 Spring Boot Producer
 
 ```java
 import org.springframework.kafka.core.KafkaTemplate;
@@ -971,7 +522,7 @@ public class OrderProducer {
 }
 ```
 
-### 8.5 Spring Boot Consumer
+### 7.5 Spring Boot Consumer
 
 ```java
 import org.springframework.kafka.annotation.KafkaListener;
@@ -1006,7 +557,7 @@ spring:
 
 ---
 
-## 9. 消息发送流程
+## 8. 消息发送流程
 
 生产者发送消息的大致流程：
 
@@ -1021,7 +572,7 @@ Producer
   -> 返回 ack
 ```
 
-### 9.1 分区策略
+### 8.1 分区策略
 
 常见分区方式：
 
@@ -1035,7 +586,7 @@ Producer
 new ProducerRecord<>("order-create", orderId, message);
 ```
 
-### 9.2 acks 参数
+### 8.2 acks 参数
 
 | 参数 | 含义 | 可靠性 | 性能 |
 |---|---|---|---|
@@ -1051,7 +602,7 @@ enable.idempotence=true
 min.insync.replicas=2
 ```
 
-### 9.3 幂等生产者
+### 8.3 幂等生产者
 
 开启幂等：
 
@@ -1067,7 +618,7 @@ enable.idempotence=true
 
 ---
 
-## 10. 消费流程和 Rebalance
+## 9. 消费流程和 Rebalance
 
 消费者消费流程：
 
@@ -1080,7 +631,7 @@ Consumer
   -> 提交 offset
 ```
 
-### 10.1 自动提交和手动提交
+### 9.1 自动提交和手动提交
 
 自动提交：
 
@@ -1102,7 +653,7 @@ enable.auto.commit=false
 consumer.commitSync();
 ```
 
-### 10.2 消费线程和分区的关系
+### 9.2 消费线程和分区的关系
 
 Kafka 的消费并发主要取决于 Topic 分区数。
 
@@ -1194,7 +745,7 @@ concurrency=10：最多仍然只有 6 个线程真正消费，多出来的线程
 分区数不够，单纯增加消费者线程没有明显作用。
 ```
 
-### 10.3 消费多个 Topic
+### 9.3 消费多个 Topic
 
 同一个 `Consumer Group` 可以同时订阅多个 Topic。Kafka 会把这些 Topic 的所有分区合在一起，分配给这个消费者组里的消费者线程。
 
@@ -1262,7 +813,7 @@ public void listenPayment(String message) {
 
 注意：如果多个监听器使用同一个 `groupId` 并订阅同一个 Topic，它们是在同一个消费者组内分摊消费，不是每个监听器都完整消费一份。
 
-### 10.4 按规则消费 Topic
+### 9.4 按规则消费 Topic
 
 Spring Kafka 可以用 `topicPattern` 按正则订阅 Topic。
 
@@ -1367,7 +918,7 @@ log-user-login
 topicPattern = "order-.*"
 ```
 
-### 10.5 Rebalance 是什么
+### 9.5 Rebalance 是什么
 
 Rebalance 是消费者组内分区重新分配的过程。
 
@@ -1384,7 +935,7 @@ Rebalance 的影响：
 - 如果 offset 提交不合理，可能出现重复消费。
 - 频繁 Rebalance 会影响吞吐和稳定性。
 
-### 10.6 减少 Rebalance 的建议
+### 9.6 减少 Rebalance 的建议
 
 - 合理设置 `session.timeout.ms` 和 `heartbeat.interval.ms`。
 - 单次 `poll` 后业务处理不要超过 `max.poll.interval.ms`。
@@ -1394,9 +945,9 @@ Rebalance 的影响：
 
 ---
 
-## 11. 可靠性设计
+## 10. 可靠性设计
 
-### 11.1 如何保证消息不丢
+### 10.1 如何保证消息不丢
 
 生产端：
 
@@ -1426,7 +977,7 @@ enable.auto.commit=false
 - 数据库操作使用唯一键、状态机或幂等表。
 - 失败消息进入重试队列或死信队列。
 
-### 11.2 重复消费怎么解决
+### 10.2 重复消费怎么解决
 
 Kafka 常见语义是至少一次消费，重复消费在工程上很常见。
 
@@ -1438,7 +989,7 @@ Kafka 常见语义是至少一次消费，重复消费在工程上很常见。
 - 下游接口设计成幂等接口。
 - 对支付、扣库存等核心链路使用本地事务或状态机控制。
 
-### 11.3 消息顺序怎么保证
+### 10.3 消息顺序怎么保证
 
 Kafka 只保证单分区有序。
 
@@ -1454,7 +1005,7 @@ Kafka 只保证单分区有序。
 - 分区内顺序会限制并发度。
 - 某些热点 key 可能导致单分区压力过大。
 
-### 11.4 事务消息
+### 10.4 事务消息
 
 Kafka 支持事务，可以让生产消息和提交消费 offset 在一个事务中完成，常用于流式处理场景。
 
@@ -1469,7 +1020,7 @@ enable.idempotence=true
 
 ---
 
-## 12. 存储结构
+## 11. 存储结构
 
 Kafka 分区在磁盘上是追加写日志。
 
@@ -1498,7 +1049,7 @@ Kafka 为什么快：
 
 ---
 
-## 13. 数据保留和清理
+## 12. 数据保留和清理
 
 Kafka 消息不会因为被消费就删除，而是根据保留策略清理。
 
@@ -1532,9 +1083,9 @@ cleanup.policy=compact
 
 ---
 
-## 14. 性能调优
+## 13. 性能调优
 
-### 14.1 Producer 调优
+### 13.1 Producer 调优
 
 常见参数：
 
@@ -1553,7 +1104,7 @@ acks=all
 - `compression.type`：压缩算法，常用 `lz4` 或 `snappy`。
 - `buffer.memory`：生产者缓冲区大小。
 
-### 14.2 Consumer 调优
+### 13.2 Consumer 调优
 
 常见参数：
 
@@ -1571,7 +1122,7 @@ max.partition.fetch.bytes=1048576
 - `max.poll.records`：一次 poll 返回的最大消息数。
 - `max.partition.fetch.bytes`：单分区一次拉取最大数据量。
 
-### 14.3 Broker 调优
+### 13.3 Broker 调优
 
 关注点：
 
@@ -1583,9 +1134,9 @@ max.partition.fetch.bytes=1048576
 
 ---
 
-## 15. 监控与运维
+## 14. 监控与运维
 
-### 15.1 重点监控指标
+### 14.1 重点监控指标
 
 Broker：
 
@@ -1610,7 +1161,7 @@ Consumer：
 - Lag 堆积。
 - Rebalance 次数。
 
-### 15.2 常用排查命令
+### 14.2 常用排查命令
 
 查看 Topic：
 
@@ -1633,7 +1184,7 @@ bin/kafka-consumer-groups.sh \
   --group order-service
 ```
 
-### 15.3 消费堆积怎么处理
+### 14.3 消费堆积怎么处理
 
 处理思路：
 
@@ -1647,9 +1198,9 @@ bin/kafka-consumer-groups.sh \
 
 ---
 
-## 16. 常见故障
+## 15. 常见故障
 
-### 16.1 advertised.listeners 配错
+### 15.1 advertised.listeners 配错
 
 现象：
 
@@ -1660,7 +1211,7 @@ bin/kafka-consumer-groups.sh \
 
 `advertised.listeners` 是 Kafka 告诉客户端的 Broker 地址，必须是客户端能访问的地址。
 
-### 16.2 分区副本不同步
+### 15.2 分区副本不同步
 
 现象：
 
@@ -1674,7 +1225,7 @@ bin/kafka-consumer-groups.sh \
 - Follower 复制线程跟不上。
 - Broker 负载过高。
 
-### 16.3 消费者一直重复消费
+### 15.3 消费者一直重复消费
 
 可能原因：
 
@@ -1690,7 +1241,7 @@ bin/kafka-consumer-groups.sh \
 - 调整 `max.poll.interval.ms`。
 - 优化单批处理耗时。
 
-### 16.4 消息丢失
+### 15.4 消息丢失
 
 可能原因：
 
@@ -1701,7 +1252,7 @@ bin/kafka-consumer-groups.sh \
 
 ---
 
-## 17. Kafka 和其他消息队列对比
+## 16. Kafka 和其他消息队列对比
 
 | 对比项 | Kafka | RabbitMQ | RocketMQ |
 |---|---|---|---|
@@ -1721,9 +1272,9 @@ bin/kafka-consumer-groups.sh \
 
 ---
 
-## 18. 面试高频问题
+## 17. 面试高频问题
 
-### 18.1 Kafka 为什么快？
+### 17.1 Kafka 为什么快？
 
 一句话秒答：
 
@@ -1733,7 +1284,7 @@ Kafka 快主要因为顺序写磁盘、批量发送、Page Cache、零拷贝和�
 
 Kafka 写入不是频繁随机写，而是追加写日志文件。生产者会批量发送消息，Broker 也能批量处理。数据读写大量依赖操作系统 Page Cache，发送文件时还能使用零拷贝减少内存复制。Topic 被拆成多个分区后，可以分布到多个 Broker 上并行读写。
 
-### 18.2 Kafka 如何保证高可用？
+### 17.2 Kafka 如何保证高可用？
 
 一句话秒答：
 
@@ -1743,7 +1294,7 @@ Kafka 通过分区副本、Leader/Follower、ISR 和 Leader 选举保证高可�
 
 每个分区有多个副本，一个 Leader 负责读写，多个 Follower 复制数据。Leader 宕机后，Kafka 会优先从 ISR 中选择新的 Leader。生产环境通常使用 3 副本，并配置 `min.insync.replicas=2` 和 `acks=all`。
 
-### 18.3 Kafka 会不会丢消息？
+### 17.3 Kafka 会不会丢消息？
 
 一句话秒答：
 
@@ -1760,7 +1311,7 @@ unclean.leader.election.enable=false
 enable.auto.commit=false
 ```
 
-### 18.4 如何保证消息顺序？
+### 17.4 如何保证消息顺序？
 
 一句话秒答：
 
@@ -1770,7 +1321,7 @@ Kafka 只能保证单分区有序，业务上要把需要有序的消息用同�
 
 例如同一个订单的创建、支付、发货消息都使用 `orderId` 作为 key。这样它们会进入同一个分区，消费者按分区顺序读取。但如果消费端多线程并发处理同一 key，也可能破坏业务顺序。
 
-### 18.5 如何处理重复消费？
+### 17.5 如何处理重复消费？
 
 一句话秒答：
 
@@ -1784,7 +1335,7 @@ Kafka 只能保证单分区有序，业务上要把需要有序的消息用同�
 - Redis 短期去重。
 - 下游接口幂等。
 
-### 18.6 什么是 Rebalance？
+### 17.6 什么是 Rebalance？
 
 一句话秒答：
 
@@ -1801,7 +1352,7 @@ Rebalance 是消费者组内分区重新分配的过程。
 
 Rebalance 期间消费者可能暂停消费，频繁 Rebalance 会导致吞吐下降和重复消费风险。
 
-### 18.7 ISR 是什么？
+### 17.7 ISR 是什么？
 
 一句话秒答：
 
@@ -1811,7 +1362,7 @@ ISR 是和 Leader 保持同步的副本集合。
 
 只有跟上 Leader 复制进度的 Follower 才会在 ISR 中。Leader 宕机时，Kafka 会优先从 ISR 中选新 Leader。`min.insync.replicas` 用来控制最少同步副本数量，配合 `acks=all` 可以提高可靠性。
 
-### 18.8 acks=all 就一定不丢消息吗？
+### 17.8 acks=all 就一定不丢消息吗？
 
 不是。
 
@@ -1825,7 +1376,7 @@ ISR 是和 Leader 保持同步的副本集合。
 
 否则仍然可能因为副本不足、错误选主或消费端提交不当导致数据问题。
 
-### 18.9 Kafka 如何实现延迟消息？
+### 17.9 Kafka 如何实现延迟消息？
 
 Kafka 原生不擅长精确延迟消息。
 
@@ -1836,7 +1387,7 @@ Kafka 原生不擅长精确延迟消息。
 - 使用时间轮组件。
 - 业务对延迟消息要求强时考虑 RocketMQ。
 
-### 18.10 Kafka 分区越多越好吗？
+### 17.10 Kafka 分区越多越好吗？
 
 不是。
 
@@ -1852,7 +1403,7 @@ Kafka 原生不擅长精确延迟消息。
 
 ---
 
-## 19. 生产环境建议配置
+## 18. 生产环境建议配置
 
 Topic：
 
@@ -1898,7 +1449,7 @@ max.poll.records=500
 
 ---
 
-## 20. 学习路线
+## 19. 学习路线
 
 建议按这个顺序掌握：
 
