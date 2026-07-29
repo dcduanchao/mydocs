@@ -346,6 +346,32 @@ cd /opt/kafka
 sudo docker compose up -d
 ```
 
+查询状态
+```
+  docker exec kafka-119 \
+    /opt/kafka/bin/kafka-metadata-quorum.sh \
+    --bootstrap-controller localhost:9093 \
+    describe --status
+
+```
+
+失误重建
+```
+
+  docker compose down
+
+  mv /data/kafka/data /data/kafka/data-node1-backup
+  mkdir -p /data/kafka/data
+  sudo chown -R 1000:1000 /data/kafka
+
+[//]: # (  chown --reference=/data/kafka/data-node1-backup /data/kafka/data)
+
+  docker compose up -d
+  docker logs -f kafka-119
+
+
+```
+
 ### 3.4 检查集群
 
 任意 Kafka 节点执行：
