@@ -66,6 +66,7 @@ nav:
       - java基础: java/java_base.md
       - Java 并发编程: java/java_concurrency.md
       - Spring 与 Spring Boot: java/spring_boot.md
+      - MySQL: java/mysql.md
       - 函数式接口: java/java_util_function.md
       - 数据结构与算法: java/data_structure_algorithm.md
       - 数据结构与算法2: java/数据结构2.md
@@ -102,6 +103,7 @@ nav:
       - Kafka Ubuntu Docker 部署: docker/kafka_ubuntu_docker_deploy.md
       - Redis 单机与集群 Docker 部署: docker/redis_ubuntu_docker_deploy.md
       - Elasticsearch 单机与集群 Docker 部署: docker/elasticsearch_ubuntu_docker_deploy.md
+      - MySQL 单机与主从 Docker 部署: docker/mysql_ubuntu_docker_deploy.md
 
   - 项目:
       - 项目说明: project/about.md
