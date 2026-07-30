@@ -64,12 +64,15 @@ nav:
 
   - Java:
       - java基础: java/java_base.md
+      - Java 并发编程: java/java_concurrency.md
+      - Spring 与 Spring Boot: java/spring_boot.md
       - 函数式接口: java/java_util_function.md
       - 数据结构与算法: java/data_structure_algorithm.md
       - 数据结构与算法2: java/数据结构2.md
       - JVM: java/jvm.md
       - Kafka: java/kafka.md
       - Redis: java/redis.md
+      - Elasticsearch: java/elasticsearch.md
       - SSE: java/sse_spring_webflux_guide.md
       - springboot多项目构建主pom: java/spring_modules.md
 
@@ -98,6 +101,7 @@ nav:
       - 常用软件: docker/docker-部署镜像.md
       - Kafka Ubuntu Docker 部署: docker/kafka_ubuntu_docker_deploy.md
       - Redis 单机与集群 Docker 部署: docker/redis_ubuntu_docker_deploy.md
+      - Elasticsearch 单机与集群 Docker 部署: docker/elasticsearch_ubuntu_docker_deploy.md
 
   - 项目:
       - 项目说明: project/about.md
