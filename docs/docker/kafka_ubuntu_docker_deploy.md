@@ -1366,7 +1366,373 @@ sudo docker exec -it kafka-117 /opt/kafka/bin/kafka-metadata-quorum.sh \
 
 ---
 
-## 9. 生产注意事项
+## 9. Prometheus 和 Grafana 监控
+
+Prometheus 和 Grafana 已安装时，只需要部署 Exporter、配置 Prometheus 抓取目标，并在 Grafana 中添加 Prometheus 数据源。
+
+本文使用的实际监控拓扑：
+
+| 地址 | 角色 |
+|---|---|
+| `192.168.30.33` | Prometheus、Grafana |
+| `192.168.30.115` | Exporter 部署节点 |
+| `192.168.30.116` | 单机 Kafka |
+| `192.168.30.117-192.168.30.119` | 三节点 Kafka 集群 |
+
+各组件的职责如下：
+
+```text
+Kafka Exporter -> Topic、Consumer Group、消费 Lag
+JMX Exporter   -> JVM、GC、网络请求、副本同步、Controller
+Node Exporter  -> CPU、内存、磁盘、网络、系统负载
+Prometheus     -> 定时采集和保存指标、执行告警规则
+Grafana        -> 查询 Prometheus 并展示监控面板
+```
+
+部署数量建议：
+
+| 组件 | 部署数量 | 默认端口 |
+|---|---:|---:|
+| Kafka Exporter | 每个 Kafka 集群 1 个 | 9308 |
+| JMX Exporter | 每个 Kafka Broker 1 个 Java Agent | 7071 |
+| Node Exporter | 每台 Kafka 服务器 1 个 | 9100 |
+
+### 9.1 部署 Kafka Exporter
+
+Kafka Exporter 可以部署在任意一台能够访问所有 Broker 的服务器上。每个 Kafka 集群需要一个独立的 Exporter，因此在 `192.168.30.115` 部署两个容器：
+
+- `kafka-exporter-single` 采集 `192.168.30.116` 单机 Kafka，对外端口为 `9308`。
+- `kafka-exporter-cluster` 采集 `192.168.30.117-192.168.30.119` 三节点集群，对外端口为 `9309`。
+
+```bash
+sudo mkdir -p /opt/kafka-exporter
+cd /opt/kafka-exporter
+sudo vim docker-compose.yml
+```
+
+```yaml
+services:
+  kafka-exporter-single:
+    image: danielqsj/kafka-exporter:v1.9.0
+    container_name: kafka-exporter-single
+    restart: always
+    command:
+      - "--kafka.server=192.168.30.116:9092"
+      - "--web.listen-address=:9308"
+      - "--log.level=info"
+    ports:
+      - "9308:9308"
+
+  kafka-exporter-cluster:
+    image: danielqsj/kafka-exporter:v1.9.0
+    container_name: kafka-exporter-cluster
+    restart: always
+    command:
+      - "--kafka.server=192.168.30.117:9092"
+      - "--kafka.server=192.168.30.118:9092"
+      - "--kafka.server=192.168.30.119:9092"
+      - "--web.listen-address=:9308"
+      - "--log.level=info"
+    ports:
+      - "9309:9308"
+```
+
+启动并检查：
+
+```bash
+sudo docker compose up -d
+sudo docker logs --tail 100 kafka-exporter-single
+sudo docker logs --tail 100 kafka-exporter-cluster
+curl http://127.0.0.1:9308/metrics
+curl http://127.0.0.1:9309/metrics
+```
+
+检查 Exporter 发现的 Broker 数量：
+
+```bash
+curl -s http://127.0.0.1:9308/metrics | grep '^kafka_brokers'
+curl -s http://127.0.0.1:9309/metrics | grep '^kafka_brokers'
+```
+
+正常结果应分别为：
+
+```text
+192.168.30.115:9308 -> kafka_brokers 1
+192.168.30.115:9309 -> kafka_brokers 3
+```
+
+如果 Kafka 的 `advertised.listeners` 使用域名，Kafka Exporter 容器也必须能够解析每个 Broker 的域名。生产环境建议使用内部 DNS，也可以通过 Compose 的 `extra_hosts` 临时配置。
+
+### 9.2 部署 JMX Exporter
+
+JMX Exporter 以 Java Agent 方式运行在 Kafka JVM 中，因此不能集中部署在 `192.168.30.115`。下面操作需要分别在单机 Kafka `192.168.30.116` 和集群 Broker `192.168.30.117-192.168.30.119` 上执行。
+
+准备 JMX Exporter 文件：
+
+```bash
+sudo mkdir -p /opt/kafka/jmx-exporter
+cd /opt/kafka/jmx-exporter
+
+sudo curl -L \
+  -o jmx_prometheus_javaagent-1.2.0.jar \
+  https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/1.2.0/jmx_prometheus_javaagent-1.2.0.jar
+
+sudo curl -L \
+  -o kafka.yml \
+  https://raw.githubusercontent.com/prometheus/jmx_exporter/1.2.0/examples/kafka-2_0_0.yml
+```
+
+在每个 Broker 的 Kafka Compose 服务中增加端口、Java Agent 参数和文件挂载：
+
+```yaml
+services:
+  kafka:
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "7071:7071"
+    environment:
+      KAFKA_OPTS: "-javaagent:/opt/jmx-exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx-exporter/kafka.yml"
+    volumes:
+      - /data/kafka/data:/var/lib/kafka/data
+      - /opt/kafka/jmx-exporter/jmx_prometheus_javaagent-1.2.0.jar:/opt/jmx-exporter/jmx_prometheus_javaagent.jar:ro
+      - /opt/kafka/jmx-exporter/kafka.yml:/opt/jmx-exporter/kafka.yml:ro
+```
+
+如果原配置已经存在 `KAFKA_OPTS`，需要把 Java Agent 参数合并到原值中，不能直接覆盖其他 JVM 参数。
+
+逐台重启 Broker，上一台恢复正常后再重启下一台：
+
+```bash
+cd /opt/kafka
+sudo docker compose up -d
+sudo docker logs --tail 100 kafka-117
+curl http://127.0.0.1:7071/metrics
+```
+
+`kafka-117` 要替换为当前节点的实际容器名。检查常见 Kafka 指标：
+
+```bash
+curl -s http://127.0.0.1:7071/metrics | grep -Ei 'underreplicated|isr|controller|request' | head
+```
+
+不同 Kafka 和 JMX Exporter 版本生成的指标名称可能不同，应以当前 `/metrics` 实际输出为准。
+
+### 9.3 部署 Node Exporter
+
+Node Exporter 采集所在服务器的系统指标，也不能集中代替其他节点采集。建议在 `192.168.30.115-192.168.30.119` 每台服务器分别部署，其中 `116-119` 是 Kafka 主机，`115` 是 Exporter 主机。
+
+```bash
+sudo mkdir -p /opt/node-exporter
+cd /opt/node-exporter
+sudo vim docker-compose.yml
+```
+
+```yaml
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node-exporter
+    restart: always
+    network_mode: host
+    pid: host
+    command:
+      - "--path.rootfs=/host"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    volumes:
+      - /:/host:ro,rslave
+```
+
+启动并检查：
+
+```bash
+sudo docker compose up -d
+curl http://127.0.0.1:9100/metrics
+```
+
+### 9.4 配置 Prometheus
+
+在 `192.168.30.33` 上编辑 Prometheus 的 `prometheus.yml`，增加以下抓取任务。通过 `cluster` 标签区分单机 Kafka 和三节点集群：
+
+```yaml
+scrape_configs:
+  - job_name: kafka-exporter
+    static_configs:
+      - targets:
+          - "192.168.30.115:9308"
+        labels:
+          cluster: "kafka-single-116"
+      - targets:
+          - "192.168.30.115:9309"
+        labels:
+          cluster: "kafka-cluster-117-119"
+
+  - job_name: kafka-jmx
+    static_configs:
+      - targets:
+          - "192.168.30.116:7071"
+        labels:
+          cluster: "kafka-single-116"
+      - targets:
+          - "192.168.30.117:7071"
+          - "192.168.30.118:7071"
+          - "192.168.30.119:7071"
+        labels:
+          cluster: "kafka-cluster-117-119"
+
+  - job_name: kafka-node
+    static_configs:
+      - targets:
+          - "192.168.30.115:9100"
+          - "192.168.30.116:9100"
+          - "192.168.30.117:9100"
+          - "192.168.30.118:9100"
+          - "192.168.30.119:9100"
+```
+
+如果 `prometheus.yml` 已有 `scrape_configs`，只追加其中的三个 `job_name`，不要重复声明顶层 `scrape_configs`。
+
+检查配置并重新加载 Prometheus：
+
+```bash
+promtool check config /etc/prometheus/prometheus.yml
+sudo systemctl reload prometheus
+```
+
+如果 Prometheus 使用 Docker 部署，需要在容器内执行 `promtool`，并按照现有部署方式重启或向 `/-/reload` 发送请求。
+
+打开 Prometheus 的 `Status -> Targets`，确认以下任务均为 `UP`：
+
+```text
+kafka-exporter  2/2 UP
+kafka-jmx       4/4 UP
+kafka-node      5/5 UP
+```
+
+### 9.5 配置基础告警规则
+
+在 Prometheus 配置目录创建 `kafka_rules.yml`：
+
+```yaml
+groups:
+  - name: kafka
+    rules:
+      - alert: KafkaExporterDown
+        expr: up{job="kafka-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka Exporter 不可用"
+
+      - alert: KafkaBrokerMissing
+        expr: kafka_brokers{cluster="kafka-single-116"} != 1 or kafka_brokers{cluster="kafka-cluster-117-119"} != 3
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka Broker 数量不足"
+          description: "集群 {{ $labels.cluster }} 当前 Broker 数量为 {{ $value }}。"
+
+      - alert: KafkaConsumerLagHigh
+        expr: sum by (cluster, consumergroup, topic) (kafka_consumergroup_lag) > 10000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka 消费积压过高"
+          description: "集群 {{ $labels.cluster }} 的消费者组 {{ $labels.consumergroup }}、Topic {{ $labels.topic }} 积压超过 10000。"
+
+      - alert: KafkaJmxExporterDown
+        expr: up{job="kafka-jmx"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka JMX Exporter 不可用"
+
+      - alert: KafkaNodeExporterDown
+        expr: up{job="kafka-node"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka Node Exporter 不可用"
+```
+
+在 `prometheus.yml` 中加载规则：
+
+```yaml
+rule_files:
+  - /etc/prometheus/kafka_rules.yml
+```
+
+再次执行 `promtool check config` 并重新加载 Prometheus。Prometheus 负责计算告警规则；如果需要发送到邮件、企业微信或钉钉，还需要配置 Alertmanager。
+
+### 9.6 配置 Grafana
+
+在已安装的 Grafana 中添加 Prometheus 数据源：
+
+1. 进入 `Connections -> Data sources -> Add data source`。
+2. 选择 `Prometheus`。
+3. URL 填写本机 Prometheus 地址 `http://192.168.30.33:9090`。
+4. 点击 `Save & test`，确认连接成功。
+
+推荐分别建立 Kafka 集群、消费者积压和服务器资源三个 Dashboard。常用 PromQL：
+
+```promql
+# Broker 数量
+kafka_brokers
+
+# 三节点 Kafka 集群的 Broker 数量
+kafka_brokers{cluster="kafka-cluster-117-119"}
+
+# 按消费者组和 Topic 汇总 Lag
+sum by (cluster, consumergroup, topic) (kafka_consumergroup_lag)
+
+# 每个分区的 Lag
+kafka_consumergroup_lag
+
+# JMX Exporter 在线状态
+up{job="kafka-jmx"}
+
+# Kafka 节点 CPU 使用率
+100 - avg by (instance) (rate(node_cpu_seconds_total{job="kafka-node",mode="idle"}[5m])) * 100
+
+# Kafka 节点可用内存百分比
+node_memory_MemAvailable_bytes{job="kafka-node"}
+  / node_memory_MemTotal_bytes{job="kafka-node"} * 100
+
+# Kafka 数据盘使用率，mountpoint 按实际目录调整
+100 - node_filesystem_avail_bytes{job="kafka-node",mountpoint="/data"}
+  / node_filesystem_size_bytes{job="kafka-node",mountpoint="/data"} * 100
+```
+
+也可以在 Grafana Dashboard 市场导入模板：
+
+- Node Exporter Full：Dashboard ID `1860`。
+- Kafka Exporter：可搜索 `Kafka Exporter`，选择与当前指标名称匹配的模板。
+
+导入后必须检查每个面板使用的 `job`、数据源和指标名称。模板与 Exporter 版本不匹配时，面板可能显示 `No data`，此时应按照 Prometheus 中的实际指标调整查询。
+
+### 9.7 监控验收
+
+部署完成后依次确认：
+
+- `192.168.30.115:9308` 的 `kafka_brokers` 等于 `1`。
+- `192.168.30.115:9309` 的 `kafka_brokers` 等于 `3`。
+- Kafka Exporter 能看到业务 Consumer Group 和 Lag。
+- 每个 Broker 的 `7071/metrics` 可以访问。
+- 每台服务器的 `9100/metrics` 可以访问。
+- Prometheus Targets 全部为 `UP`。
+- Grafana 能查询 `kafka_brokers` 和 `kafka_consumergroup_lag`。
+- 停止一个测试消费者后，Grafana 中的 Lag 会持续增长；恢复消费者后 Lag 会下降。
+
+监控端口 `9308`、`9309`、`7071` 和 `9100` 应只允许 Prometheus 服务器 `192.168.30.33` 访问，不应直接暴露到公网。
+
+---
+
+## 10. 生产注意事项
 
 - 单机 Kafka 只适合开发、测试或低重要性业务。
 - 生产环境建议使用 `192.168.30.117-192.168.30.119` 三节点集群。
