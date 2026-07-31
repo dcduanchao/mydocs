@@ -67,6 +67,9 @@ nav:
       - Java 并发编程: java/java_concurrency.md
       - Spring 与 Spring Boot: java/spring_boot.md
       - MySQL: java/mysql.md
+      - MyBatis 与 MyBatis-Plus: java/mybatis.md
+      - Spring Security、JWT 与 OAuth2: java/spring_security.md
+      - 微服务与分布式事务: java/microservices_distributed_transactions.md
       - 函数式接口: java/java_util_function.md
       - 数据结构与算法: java/data_structure_algorithm.md
       - 数据结构与算法2: java/数据结构2.md
