@@ -65,6 +65,11 @@ nav:
   - Java:
       - java基础: java/java_base.md
       - Java 并发编程: java/java_concurrency.md
+      - Java I/O、NIO 与 Netty: java/java_io_nio_netty.md
+      - JVM 生产故障排查: java/jvm_production_troubleshooting.md
+      - RabbitMQ 与 RocketMQ: java/rabbitmq_rocketmq.md
+      - JUnit 5 与测试体系: java/java_testing.md
+      - DDD 领域驱动设计: java/ddd.md
       - Spring 与 Spring Boot: java/spring_boot.md
       - MySQL: java/mysql.md
       - MyBatis 与 MyBatis-Plus: java/mybatis.md
@@ -79,6 +84,36 @@ nav:
       - Elasticsearch: java/elasticsearch.md
       - SSE: java/sse_spring_webflux_guide.md
       - springboot多项目构建主pom: java/spring_modules.md
+
+  - AI:
+      - AI 技术专题: ai/index.md
+      - 基础与 Prompt:
+          - 01 大模型基础: ai/01_llm_fundamentals.md
+          - 02 Prompt 工程: ai/02_prompt_engineering.md
+      - 评估与工程化:
+          - 03 AI 评估体系: ai/03_ai_evaluation.md
+          - 04 LLMOps: ai/04_llmops.md
+      - 检索与模型基础设施:
+          - 05 向量数据库: ai/05_vector_database.md
+          - 06 模型网关: ai/06_model_gateway.md
+          - 07 本地模型部署: ai/07_local_model_deployment.md
+      - 多模态与工具协议:
+          - 08 多模态 AI: ai/08_multimodal.md
+          - 09 MCP: ai/09_mcp.md
+      - 安全、数据与训练:
+          - 10 AI 安全: ai/10_ai_security.md
+          - 11 AI 数据工程: ai/11_ai_data_engineering.md
+          - 12 模型微调: ai/12_ai_finetuning.md
+      - 产品与实战:
+          - 13 AI 前端体验: ai/13_ai_frontend.md
+          - 14 AI 工作流: ai/14_ai_workflow.md
+          - 15 AI 项目实战: ai/15_ai_projects.md
+      - 模型接入:
+          - Spring AI: ai/spring_ai.md
+          - 阿里云百炼与通义千问: ai/alibaba_ai.md
+      - 知识库与智能体:
+          - RAG 检索增强生成: ai/rag.md
+          - Agent 智能体: ai/agent.md
 
 
   - Linux:
