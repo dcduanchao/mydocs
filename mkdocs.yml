@@ -129,6 +129,7 @@ nav:
       - 文件互传: linux/文件互传.md
       - linux下载: linux/linux下载.md
 
+
   - Python:
       - Conda环境: python/conda.md
       - MkDocs安装: python/mkdocs.md
@@ -142,6 +143,7 @@ nav:
       - Redis 单机与集群 Docker 部署: docker/redis_ubuntu_docker_deploy.md
       - Elasticsearch 单机与集群 Docker 部署: docker/elasticsearch_ubuntu_docker_deploy.md
       - MySQL 单机与主从 Docker 部署: docker/mysql_ubuntu_docker_deploy.md
+      - Github 镜像备份: docker/ghcr_image_backup.md
 
   - 项目:
       - 项目说明: project/about.md
