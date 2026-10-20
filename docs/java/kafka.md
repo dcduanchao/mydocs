@@ -1333,7 +1333,7 @@ Kafka 快主要因为顺序写磁盘、Page Cache、零拷贝、批量处理、�
 2. Page Cache
 
    Page Cache 是操作系统对磁盘文件的内存缓存。Kafka 写消息时，数据通常先进入 Page Cache，再由操作系统批量刷入磁盘；消费者读取刚写入的热点消息时，也通常可以直接从 Page Cache 获取，不必再次访问磁盘。
-
+![img.png](images/PageCache.png)
    ```text
    Producer -> Kafka -> Page Cache -> 磁盘
                               |
@@ -1345,6 +1345,12 @@ Kafka 快主要因为顺序写磁盘、Page Cache、零拷贝、批量处理、�
 3. 零拷贝
 
    Kafka 发送日志文件时可以利用 `sendfile` 等零拷贝能力，减少数据在内核空间和用户空间之间的复制，从而降低 CPU 消耗和上下文切换次数。
+
+   内核空间（Kernel Space）：Linux 操作系统使用，Page Cache、网络协议栈等在这里。
+
+   用户空间（User Space）：Kafka JVM 进程使用，包括 Java 堆内存、部分堆外内存等
+![传统读取文件.png](images/%E4%BC%A0%E7%BB%9F%E8%AF%BB%E5%8F%96%E6%96%87%E4%BB%B6.png)
+![ZeroCopy.png](images/ZeroCopy.png)
 
 4. 批量处理
 
