@@ -84,6 +84,7 @@ nav:
       - Elasticsearch: java/elasticsearch.md
       - SSE: java/sse_spring_webflux_guide.md
       - springboot多项目构建主pom: java/spring_modules.md
+      - springboot最大请求数问题: java/java服务最大请求连接.md
 
   - AI:
       - AI 技术专题: ai/index.md
