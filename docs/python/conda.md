@@ -17,7 +17,7 @@ conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/ma
 # 接收 R channel 的 TOS
 conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
-conda create -n grok python=3.13 -y
+conda create -n comfyui python=3.13 -y
 
 
 conda info  --envs

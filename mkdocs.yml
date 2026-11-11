@@ -66,6 +66,7 @@ nav:
       - java基础: java/java_base.md
       - Java 并发编程: java/java_concurrency.md
       - Java I/O、NIO 与 Netty: java/java_io_nio_netty.md
+      - HttpClient 八股速刷: java/httpclient.md
       - JVM 生产故障排查: java/jvm_production_troubleshooting.md
       - RabbitMQ 与 RocketMQ: java/rabbitmq_rocketmq.md
       - JUnit 5 与测试体系: java/java_testing.md
